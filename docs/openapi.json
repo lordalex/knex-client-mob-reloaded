@@ -1,0 +1,5016 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "KNEX Valet Dashboard API (Generated)",
+    "version": "2.0.0",
+    "description": "This is a dynamically generated OpenAPI specification, built from the backend's source schemas and endpoint definitions. It represents the complete API surface."
+  },
+  "servers": [
+    {
+      "url": "https://www.knex-app.xyz/api",
+      "description": "Production API server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "AdminRegistration": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the registration",
+            "example": "123e4567-e89b-12d3-a456-426614174000",
+            "x-label": "Registration ID",
+            "x-description": {
+              "en": "Unique identifier for the registration"
+            },
+            "show": false
+          },
+          "companyName": {
+            "type": "string",
+            "description": "Name of the company",
+            "example": "Acme Corporation",
+            "x-label": "Company Name",
+            "x-description": {
+              "en": "Name of the company"
+            },
+            "show": false
+          },
+          "contactName": {
+            "type": "string",
+            "description": "Name of the contact person",
+            "example": "John Doe",
+            "x-label": "Contact Name",
+            "x-description": {
+              "en": "Name of the contact person"
+            },
+            "show": false
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "Country code for phone number",
+            "example": "+1",
+            "x-label": "Country Code",
+            "x-description": {
+              "en": "Country code for phone number"
+            },
+            "show": false
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone number",
+            "example": "1234567890",
+            "x-label": "Phone",
+            "x-description": {
+              "en": "Phone number"
+            },
+            "show": false
+          },
+          "address": {
+            "type": "string",
+            "description": "Company address",
+            "example": "123 Main St, Anytown, USA",
+            "x-label": "Address",
+            "x-description": {
+              "en": "Company address"
+            },
+            "show": false
+          },
+          "billingAddress": {
+            "type": "string",
+            "description": "Billing address if different from company address",
+            "example": "456 Billing Ave, Billtown, USA",
+            "x-label": "Billing Address",
+            "x-description": {
+              "en": "Billing address if different from company address"
+            },
+            "show": false
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address for registration",
+            "example": "johndoe@example.com",
+            "x-label": "Email",
+            "x-description": {
+              "en": "Email address for registration"
+            },
+            "show": false
+          }
+        },
+        "required": [
+          "id",
+          "companyName",
+          "contactName",
+          "phone",
+          "address",
+          "email"
+        ],
+        "description": "Admin registration information",
+        "x-description-i18n": {
+          "en": "Admin registration information"
+        },
+        "menu": false
+      },
+      "ApiKey": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "userEmail": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "companyId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE",
+              "REVOKED"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "object"
+          },
+          "lastUsedAt": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "key",
+          "userId",
+          "userEmail",
+          "role",
+          "status"
+        ]
+      },
+      "AttendantCreation": {
+        "type": "object",
+        "properties": {
+          "firstname": {
+            "type": "string"
+          },
+          "lastname": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          },
+          "companyId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "MANAGER",
+              "ATTENDANT"
+            ],
+            "default": "ATTENDANT"
+          }
+        },
+        "required": [
+          "firstname",
+          "lastname",
+          "email",
+          "password",
+          "companyId",
+          "role"
+        ]
+      },
+      "Client": {
+        "type": "object",
+        "properties": {
+          "personalData": {
+            "type": "string",
+            "description": "Personal data of the client",
+            "x-label": "PersonalData",
+            "x-description": {
+              "en": "Personal data of the client"
+            },
+            "show": true
+          },
+          "status": {
+            "type": "string",
+            "description": "Client status",
+            "x-label": "Status",
+            "x-description": {
+              "en": "Client status"
+            },
+            "show": true
+          }
+        },
+        "required": [
+          "personalData",
+          "status"
+        ],
+        "description": "Client information",
+        "x-description-i18n": {
+          "en": "Client information"
+        },
+        "menu": false
+      },
+      "ClientCreation": {
+        "type": "object",
+        "properties": {
+          "firstname": {
+            "type": "string"
+          },
+          "lastname": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "firstname",
+          "lastname",
+          "phone"
+        ]
+      },
+      "Company": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true,
+            "show": false
+          },
+          "name": {
+            "type": "string",
+            "x-label": "Company Name",
+            "show": true
+          },
+          "address": {
+            "type": "string",
+            "format": "textarea",
+            "x-label": "Company Address",
+            "show": true
+          },
+          "phone": {
+            "type": "string",
+            "x-label": "Company Phone",
+            "show": true
+          },
+          "schedules": {
+            "type": "object",
+            "show": false
+          },
+          "owner": {
+            "type": "reference",
+            "description": "A reference to the User who owns the company.",
+            "model": "User"
+          },
+          "locations": {
+            "type": "array",
+            "description": "An array of references to Location documents owned by this company.",
+            "items": {
+              "type": "reference",
+              "model": "Location"
+            }
+          }
+        }
+      },
+      "CompanyRole": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "enum": [
+              "BUSINESS_OWNER",
+              "ADMIN",
+              "ATTENDANT",
+              "CLIENT"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CrudResult": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "description": "The resulting data object after the operation."
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          }
+        }
+      },
+      "ErrorData": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "GPSCoordinates": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "format": "float",
+            "description": "Latitude coordinate",
+            "x-label": "Latitude",
+            "x-description": {
+              "en": "Latitude coordinate"
+            },
+            "show": false
+          },
+          "longitude": {
+            "type": "number",
+            "format": "float",
+            "description": "Longitude coordinate",
+            "x-label": "Longitude",
+            "x-description": {
+              "en": "Longitude coordinate"
+            },
+            "show": false
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "description": "GPS coordinates",
+        "x-description-i18n": {
+          "en": "GPS coordinates"
+        },
+        "menu": false
+      },
+      "Location": {
+        "name": "Location",
+        "description": "Represents a physical location or venue where valet services are offered.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the location.",
+            "readOnly": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the location, e.g., 'Main Garage' or 'Lot B'.",
+            "required": true
+          },
+          "address": {
+            "type": "string",
+            "description": "The physical street address of the location."
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "Contact phone number for the location."
+          },
+          "bio": {
+            "type": "string",
+            "description": "Description of the location, amenities, and services offered."
+          },
+          "photos": {
+            "type": "array",
+            "description": "Array of photo URLs for the location.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "companyId": {
+            "type": "string",
+            "description": "The ID of the company that owns this location."
+          },
+          "company": {
+            "type": "object",
+            "description": "Company object (NOT a string). Contains at minimum a 'name' field.",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "attendants": {
+            "type": "array",
+            "description": "An array of references to UserAttendant documents for attendants working at this location.",
+            "items": {
+              "type": "reference",
+              "model": "UserAttendant"
+            }
+          },
+          "price": {
+            "type": "number",
+            "format": "double",
+            "description": "Service price"
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code",
+            "example": "USD"
+          },
+          "coordinates": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number",
+                "format": "double"
+              },
+              "lng": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "description": "GPS coordinates of the location"
+          }
+        }
+      },
+      "LockerSpace": {
+        "type": "object",
+        "properties": {
+          "lockerId": {
+            "type": "string",
+            "description": "Unique identifier for the locker space",
+            "x-label": "Locker ID",
+            "show": true
+          },
+          "contentsDescription": {
+            "type": "string",
+            "description": "Description of the contents stored (e.g., Ticket number, Key description).",
+            "x-label": "Contents Description",
+            "nullable": true,
+            "show": true
+          },
+          "parkingmap_id": {
+            "type": "string",
+            "description": "ID of the parent map/location.",
+            "show": false
+          }
+        },
+        "required": [
+          "lockerId",
+          "parkingmap_id"
+        ],
+        "description": "Represents a single locker space for keys.",
+        "menu": false
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sender": {
+            "type": "string"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "content": {
+            "type": "string"
+          },
+          "read": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Notes": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "content": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          }
+        }
+      },
+      "PIN": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the PIN record. Read-only.",
+            "readOnly": true,
+            "x-label": "ID",
+            "x-description": {
+              "en": "Unique identifier for the PIN record."
+            },
+            "show": false
+          },
+          "user": {
+            "description": "User (Client or Attendant) associated with this PIN.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserClient"
+              },
+              {
+                "$ref": "#/components/schemas/UserAttendant"
+              }
+            ],
+            "x-label": "Associated User"
+          },
+          "role": {
+            "type": "string",
+            "description": "Role of the user associated with the PIN (e.g., 'UserClient', 'UserAttendant'). Read-only.",
+            "readOnly": true,
+            "x-label": "Role",
+            "x-description": {
+              "en": "Role associated with the PIN."
+            },
+            "show": false
+          },
+          "pin": {
+            "type": "string",
+            "description": "The PIN code itself. Read-only.",
+            "readOnly": true,
+            "x-label": "PIN",
+            "x-description": {
+              "en": "The PIN code."
+            },
+            "show": false
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp. Read-only.",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp. Read-only.",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "id",
+          "user",
+          "role",
+          "pin"
+        ],
+        "description": "Represents a generated PIN record for user identification.",
+        "x-description-i18n": {
+          "en": "PIN information for authentication."
+        },
+        "menu": false
+      },
+      "ParkingMap": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Primary Key",
+            "x-label": "ID",
+            "readOnly": true,
+            "x-description": {
+              "en": "Unique identifier for the parking map"
+            },
+            "show": false
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the parking map.",
+            "x-label": "Name",
+            "show": true
+          },
+          "site": {
+            "$ref": "#/components/schemas/Site",
+            "description": "The site this parking map belongs to.",
+            "x-label": "Site",
+            "show": true
+          },
+          "parkingSpaces": {
+            "type": "array",
+            "description": "List of parking physical spaces available on this map.",
+            "items": {
+              "$ref": "#/components/schemas/ParkingSpace"
+            },
+            "show": true
+          },
+          "lockerSpaces": {
+            "type": "array",
+            "description": "List of locker physical spaces available on this map.",
+            "items": {
+              "$ref": "#/components/schemas/LockerSpace"
+            },
+            "x-description": {
+              "en": "List of locker physical spaces for keys"
+            },
+            "show": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp. Read-only.",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp. Read-only.",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "name",
+          "site",
+          "parkingSpaces",
+          "lockerSpaces"
+        ],
+        "description": "Represents a parking map for a site, detailing spaces for vehicles and lockers for keys.",
+        "x-description-i18n": {
+          "en": "Detailed map of parking and locker spaces at a site."
+        },
+        "menu": true
+      },
+      "ParkingSpace": {
+        "type": "object",
+        "properties": {
+          "spaceId": {
+            "type": "string",
+            "description": "Unique identifier for the parking space",
+            "x-label": "Space ID",
+            "show": true
+          },
+          "isOccupied": {
+            "type": "boolean",
+            "description": "Indicates whether the parking space is currently occupied",
+            "x-label": "Is Occupied",
+            "show": true
+          },
+          "vehicleId": {
+            "type": "string",
+            "description": "ID of the vehicle occupying the parking space, if any",
+            "x-label": "Vehicle ID",
+            "nullable": true,
+            "show": true
+          },
+          "parkingmap_id": {
+            "type": "string",
+            "description": "ID of the parent parking map.",
+            "show": false
+          }
+        },
+        "required": [
+          "spaceId",
+          "isOccupied",
+          "parkingmap_id"
+        ],
+        "description": "Represents a single parking space within a map/location.",
+        "menu": false
+      },
+      "ReduceResponse": {
+        "type": "object",
+        "properties": {
+          "reducedValue": {
+            "type": "array",
+            "description": "An array of the distinct values found for the specified property.",
+            "items": {}
+          },
+          "length": {
+            "type": "integer",
+            "description": "The total number of documents that matched the search criteria before reduction."
+          }
+        },
+        "description": "Response from the /reduce endpoint."
+      },
+      "ReviewMetrics": {
+        "type": "object",
+        "show": false,
+        "menu": false,
+        "properties": {
+          "attendant_id": {
+            "type": "string",
+            "description": "Primary Key, Foreign Key to UserAttendant",
+            "x-label": "attendant_id"
+          },
+          "avg_rating": {
+            "type": "number",
+            "format": "float",
+            "description": "Calculated average rating.",
+            "x-label": "avg_rating"
+          },
+          "total_reviews": {
+            "type": "integer",
+            "description": "Total number of reviews received.",
+            "x-label": "total_reviews"
+          },
+          "five_star_count": {
+            "type": "integer",
+            "x-label": "five_star_count"
+          },
+          "four_star_count": {
+            "type": "integer",
+            "x-label": "four_star_count"
+          },
+          "three_star_count": {
+            "type": "integer",
+            "x-label": "three_star_count"
+          },
+          "two_star_count": {
+            "type": "integer",
+            "x-label": "two_star_count"
+          },
+          "one_star_count": {
+            "type": "integer",
+            "x-label": "one_star_count"
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when metrics were last updated.",
+            "x-label": "last_updated"
+          }
+        },
+        "required": [
+          "attendant_id"
+        ],
+        "description": "Aggregated review metrics for an attendant.",
+        "x-description-i18n": {
+          "en": "ReviewMetrics information"
+        }
+      },
+      "Site": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
+        }
+      },
+      "Status": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "VALID",
+              "INVALID",
+              "CREATED",
+              "UPDATED",
+              "DELETED",
+              "success"
+            ],
+            "description": "Status of the operation. Can be 'VALID' or 'success' (case-insensitive)."
+          },
+          "result": {
+            "type": "string",
+            "description": "Result of the operation."
+          },
+          "message": {
+            "type": "string",
+            "description": "Additional message."
+          }
+        }
+      },
+      "Ticket": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the ticket. Read-only.",
+            "readOnly": true,
+            "x-label": "ID",
+            "x-description": {
+              "en": "Unique identifier for the ticket"
+            },
+            "show": false
+          },
+          "ticket_number": {
+            "type": "string",
+            "description": "Ticket number (potentially human-readable). Read-only.",
+            "readOnly": true,
+            "x-label": "Ticket Number",
+            "x-description": {
+              "en": "Ticket number"
+            },
+            "show": true
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status of the ticket",
+            "enum": [
+              "Arrival",
+              "Processing-Arrival",
+              "Parked",
+              "Departure",
+              "Processing-Departure",
+              "Completed"
+            ],
+            "x-label": "Status",
+            "x-description": {
+              "en": "Current status of the ticket"
+            },
+            "show": true
+          },
+          "companyId": {
+            "type": "string",
+            "description": "ID of the company this ticket belongs to",
+            "x-label": "Company ID",
+            "x-description": {
+              "en": "Company identifier"
+            },
+            "show": false
+          },
+          "user_client": {
+            "type": "reference",
+            "model": "UserClient",
+            "$ref": "#/components/schemas/UserClient",
+            "description": "Client associated with the ticket. Optional if provisional.",
+            "nullable": true,
+            "x-label": "User Client",
+            "x-description": {
+              "en": "Client associated with the ticket"
+            },
+            "identifyBy": "email"
+          },
+          "user_attendant": {
+            "type": "reference",
+            "model": "UserAttendant",
+            "$ref": "#/components/schemas/UserAttendant",
+            "description": "Attendant currently handling or assigned to the ticket. Optional.",
+            "nullable": true,
+            "x-label": "Attendant",
+            "x-description": {
+              "en": "Attendant handling the ticket"
+            }
+          },
+          "vehicle": {
+            "type": "reference",
+            "model": "VehicleData",
+            "$ref": "#/components/schemas/VehicleData",
+            "description": "Vehicle related to the ticket.",
+            "x-label": "Vehicle",
+            "x-description": {
+              "en": "Vehicle related to the ticket"
+            }
+          },
+          "location": {
+            "type": "reference",
+            "description": "A reference to the Location where the ticket was issued.",
+            "model": "Location"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Internal notes about the ticket."
+          }
+        },
+        "required": [
+          "ticket_number",
+          "status",
+          "companyId"
+        ]
+      },
+      "TipTransaction": {
+        "type": "object",
+        "show": false,
+        "menu": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Primary Key",
+            "x-label": "id"
+          },
+          "ticket_id": {
+            "type": "string",
+            "description": "Foreign Key to Ticket",
+            "x-label": "ticket_id"
+          },
+          "attendant_id": {
+            "type": "string",
+            "description": "Foreign Key to UserAttendant",
+            "x-label": "attendant_id"
+          },
+          "client_id": {
+            "type": "string",
+            "description": "Foreign Key to UserClient",
+            "x-label": "client_id"
+          },
+          "stripe_payment_intent_id": {
+            "type": "string",
+            "x-label": "stripe_payment_intent_id"
+          },
+          "payment_method_id": {
+            "type": "string",
+            "description": "Identifier for the payment method used.",
+            "x-label": "payment_method_id"
+          },
+          "amount": {
+            "type": "number",
+            "format": "float",
+            "description": "Amount of the tip.",
+            "x-label": "amount"
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code (e.g., USD).",
+            "x-label": "currency"
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the payment (e.g., succeeded, pending, failed).",
+            "x-label": "status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-label": "created_at"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "x-label": "updated_at"
+          }
+        },
+        "required": [
+          "id",
+          "ticket_id",
+          "attendant_id",
+          "client_id",
+          "stripe_payment_intent_id",
+          "amount",
+          "currency",
+          "status"
+        ],
+        "description": "Records a tip transaction.",
+        "x-description-i18n": {
+          "en": "TipTransaction information"
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true,
+            "show": false
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "show": true
+          },
+          "firstName": {
+            "type": "string",
+            "x-label": "First Name",
+            "show": true
+          },
+          "lastName": {
+            "type": "string",
+            "x-label": "Last Name",
+            "show": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "show": true
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "BUSINESS_OWNER",
+              "ADMIN",
+              "ATTENDANT"
+            ],
+            "show": true
+          },
+          "companyId": {
+            "type": "string",
+            "description": "ID of the company this user belongs to.",
+            "show": false
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "show": false
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "show": false
+          }
+        },
+        "required": [
+          "email",
+          "firstName",
+          "lastName",
+          "role",
+          "companyId"
+        ],
+        "x-label": "System Users",
+        "menu": true
+      },
+      "UserAttendant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the attendant (usually generated). Read-only.",
+            "x-label": "ID",
+            "readOnly": true,
+            "x-description": {
+              "en": "Unique identifier for the attendant"
+            },
+            "show": false
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "companyId": {
+            "type": "string",
+            "description": "The ID of the company this attendant belongs to."
+          },
+          "user": {
+            "type": "reference",
+            "description": "A reference to the User document for this attendant.",
+            "model": "User",
+            "required": true
+          },
+          "location": {
+            "type": "reference",
+            "description": "A reference to the Location where this attendant is assigned.",
+            "model": "Location"
+          }
+        }
+      },
+      "UserClient": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Firestore document ID"
+          },
+          "uid": {
+            "type": "string",
+            "description": "Firebase Auth UID"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Also returned as 'firstname' (lowercase) in some responses"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Also returned as 'lastname' (lowercase) in some responses"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "photo": {
+            "type": "string",
+            "description": "Base64-encoded JPEG image with EXIF data"
+          },
+          "address": {
+            "type": "string"
+          },
+          "zipCode": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          }
+        },
+        "description": "User client profile. API may return field names in both camelCase (firstName) and lowercase (firstname) variants."
+      },
+      "UserClientProfile": {},
+      "VehicleData": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the vehicle record (usually generated). Read-only.",
+            "x-label": "ID",
+            "readOnly": true,
+            "x-description": {
+              "en": "Unique identifier for the vehicle"
+            },
+            "show": false
+          },
+          "user_client": {
+            "description": "Reference to the UserClient who owns the vehicle.",
+            "$ref": "#/components/schemas/UserClient",
+            "x-label": "User Client",
+            "x-description": {
+              "en": "User Client associated with the vehicle"
+            },
+            "show": true
+          },
+          "vehicle_make": {
+            "type": "string",
+            "description": "Make of the vehicle (e.g., Toyota, Ford).",
+            "x-label": "Vehicle Make",
+            "x-description": {
+              "en": "Vehicle make"
+            },
+            "show": true
+          },
+          "vehicle_model": {
+            "type": "string",
+            "description": "Model of the vehicle (e.g., Camry, F-150).",
+            "x-label": "Vehicle Model",
+            "x-description": {
+              "en": "Vehicle model"
+            },
+            "show": true
+          },
+          "vehicle_year": {
+            "type": "string",
+            "description": "Year of the vehicle (e.g., '2023').",
+            "x-label": "Vehicle Year",
+            "x-description": {
+              "en": "Vehicle year"
+            },
+            "show": true
+          },
+          "license_plate": {
+            "type": "string",
+            "description": "License plate number.",
+            "x-label": "License Plate",
+            "x-description": {
+              "en": "License plate number"
+            },
+            "show": true
+          },
+          "color": {
+            "type": "string",
+            "description": "Color of the vehicle.",
+            "x-label": "Color",
+            "x-description": {
+              "en": "Color of the vehicle"
+            },
+            "show": true
+          },
+          "vin": {
+            "type": "string",
+            "description": "Vehicle Identification Number (VIN). Optional.",
+            "x-label": "VIN",
+            "x-description": {
+              "en": "Vehicle Identification Number (VIN)"
+            },
+            "show": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp. Read-only.",
+            "readOnly": true,
+            "x-label": "Created At",
+            "x-description": {
+              "en": "Creation timestamp"
+            },
+            "show": false
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp. Read-only.",
+            "readOnly": true,
+            "x-label": "Updated At",
+            "x-description": {
+              "en": "Last update timestamp"
+            },
+            "show": false
+          }
+        },
+        "required": [
+          "user_client",
+          "vehicle_make",
+          "vehicle_model",
+          "license_plate",
+          "color"
+        ],
+        "description": "Represents a client's vehicle information.",
+        "x-description-i18n": {
+          "en": "Vehicle data information"
+        },
+        "menu": false
+      }
+    }
+  },
+  "paths": {
+    "/backfillCompanyId": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "backfillCompanyId",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/confirmPayment": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "confirmPaymentIntent",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/createAttendant": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "createAttendant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/createCompanyAndUpdateProfile": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "createCompanyAndUpdateProfile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/createLocation": {
+      "post": {
+        "summary": "Creates a new physical location for a company.",
+        "description": "",
+        "operationId": "createLocation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "The name of the location."
+                      },
+                      "address": {
+                        "type": "string",
+                        "description": "The physical address of the location."
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/createProvisionalTicket": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "createProvisionalTicket",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/createTicket": {
+      "post": {
+        "summary": "Create a ticket directly (prefer /generatePINandticket for client apps)",
+        "description": "Creates a ticket document directly. Field names are 'user_client', 'vehicle', 'location' (reference IDs, not '_id' suffixed). For client apps, prefer /generatePINandticket which also generates a PIN.",
+        "operationId": "createTicket",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "user_client": {
+                        "type": "string",
+                        "description": "UserClient document ID"
+                      },
+                      "vehicle": {
+                        "type": "string",
+                        "description": "Vehicle document ID"
+                      },
+                      "location": {
+                        "type": "string",
+                        "description": "Location document ID"
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "Initial status",
+                        "example": "Arrived"
+                      },
+                      "notes": {
+                        "type": "string",
+                        "description": "Optional notes for the valet"
+                      }
+                    },
+                    "required": [
+                      "user_client",
+                      "vehicle",
+                      "location"
+                    ]
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ticket created (standard envelope)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/Status"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Ticket"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request \u2014 check field names (use 'user_client' not 'user_client_id')"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/createTicketForAttendant": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "createTicketForAttendant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/createUser": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "createUser",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/createUserClient": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "createUserClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/deleteUser": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "deleteUser",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/deleteUserClient": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "deleteUserClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/generate-car-details": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "generateCarDetails",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/generatePINandticket": {
+      "post": {
+        "summary": "Generate a PIN and create a valet ticket",
+        "description": "Creates a valet parking ticket and generates a unique 6-digit PIN code. NOTE: Response is a non-standard format \u2014 returns only {pin} without the {status, data} envelope. This is the primary endpoint for clients to request valet service.",
+        "operationId": "generatePINandticket",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "User's email address"
+                      },
+                      "vehicle": {
+                        "type": "string",
+                        "description": "Vehicle document ID"
+                      },
+                      "location": {
+                        "type": "string",
+                        "description": "Location document ID"
+                      },
+                      "notes": {
+                        "type": "string",
+                        "description": "Optional notes for the valet attendant"
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "vehicle",
+                      "location"
+                    ]
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ticket created, PIN returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Non-standard response \u2014 NO {status, data} envelope. Returns only the PIN.",
+                  "properties": {
+                    "pin": {
+                      "type": "string",
+                      "description": "6-digit numeric PIN code",
+                      "example": "348669"
+                    }
+                  },
+                  "required": [
+                    "pin"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/generateReport": {
+      "post": {
+        "summary": "Generates a comprehensive and dynamic set of reports and a summarization for any specified data model.",
+        "description": "This powerful endpoint provides a one-stop solution for data analysis. By specifying a model name (e.g., 'Ticket'), the system introspects the model's schema and automatically generates multiple report variations and a high-level summarization. The first request for a new model may be slower as the report structures are analyzed and cached.",
+        "operationId": "generateReportHandler",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "modelName": {
+                        "type": "string",
+                        "description": "The exact, case-sensitive name of the data model you wish to generate reports for.",
+                        "examples": [
+                          "Ticket",
+                          "User",
+                          "TipTransaction"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "modelName"
+                    ]
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "An object containing a 'reports' array for detailed data tables and a 'summarization' array for high-level statistics.",
+                  "type": "object",
+                  "properties": {
+                    "reports": {
+                      "type": "array",
+                      "description": "An array of generated report objects. The first report is always a 'Full Data Report' containing deeply enriched objects. Subsequent reports are 'permutations' that aggregate data by different categorical fields.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "The descriptive title of the report."
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "full",
+                              "summary",
+                              "permutation"
+                            ],
+                            "description": "The type of report."
+                          },
+                          "headers": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Ordered column headers."
+                          },
+                          "rows": {
+                            "type": "array",
+                            "description": "An array of rows. In the 'full' report, cells can be complex, enriched objects. In 'permutation' reports, cells are aggregated string values.",
+                            "items": {
+                              "type": "array",
+                              "items": {
+                                "type": "any"
+                              }
+                            }
+                          }
+                        },
+                        "required": [
+                          "title",
+                          "type",
+                          "headers",
+                          "rows"
+                        ]
+                      }
+                    },
+                    "summarization": {
+                      "type": "array",
+                      "description": "A flat array of key-value pairs providing high-level, single-value statistics for the entire dataset. This is ideal for displaying dashboard widgets or quick stats. It includes total record counts, sums and averages for numeric fields, and counts for each category in categorical fields.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string",
+                            "description": "The human-readable name of the metric."
+                          },
+                          "value": {
+                            "type": "any",
+                            "description": "The calculated value of the metric."
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "value"
+                        ],
+                        "examples": [
+                          {
+                            "label": "Total Records",
+                            "value": 150
+                          },
+                          {
+                            "label": "Total Tip Amount",
+                            "value": "750.00"
+                          },
+                          {
+                            "label": "Average Tip Amount",
+                            "value": "5.00"
+                          },
+                          {
+                            "label": "Status: Complete",
+                            "value": 100
+                          },
+                          {
+                            "label": "Status: Parked",
+                            "value": 50
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "reports",
+                    "summarization"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/get-enum": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getEnumForProperty",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getAttendants": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getAttendantsForCompany",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getAttendantsForAdmin": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getAttendantsForAdmin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getAttendantsForCompany": {
+      "post": {
+        "summary": "Retrieves a list of all attendants for the company of the calling user.",
+        "description": "",
+        "operationId": "getAttendantsForCompany",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getBusinessProfile": {
+      "post": {
+        "summary": "Retrieves the combined business and user profile for the authenticated user.",
+        "description": "This endpoint is designed for ADMIN or BUSINESS_OWNER roles. It fetches the user's profile, which is pre-enriched with their associated company data, providing a complete business context in a single call.",
+        "operationId": "getBusinessProfile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The combined User and Company profile for the authenticated user.",
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getCompany": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getCompany",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getCompanyDetailsForAdmin": {
+      "post": {
+        "summary": "Retrieves the full business profile for the admin's company.",
+        "description": "This endpoint is for administrators and business owners to fetch their own company's complete profile, including all nested and referenced data.",
+        "operationId": "getCompanyDetailsForAdmin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "The fully enriched Company object.",
+                  "$ref": "#/components/schemas/Company"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getLatestTicket": {
+      "post": {
+        "summary": "Fetch the most recent active ticket for a user client",
+        "description": "Searches for the user client by email, then returns their latest ticket. NOTE: The backend searches by email internally \u2014 pass the email in the data payload.",
+        "operationId": "getLatestTicket",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "User's email address"
+                      }
+                    },
+                    "required": [
+                      "email"
+                    ]
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Latest ticket found (standard envelope, success response not yet verified)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "$ref": "#/components/schemas/Status"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Ticket"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Client not found by email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "example": 400
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Client with email user@example.com not found"
+                    },
+                    "trace": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/getLocations": {
+      "post": {
+        "summary": "Fetch all valet locations available to the user",
+        "description": "Returns all locations. NOTE: Response is a raw JSON array \u2014 NOT wrapped in the standard {status, data} envelope.",
+        "operationId": "getLocations",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "userClientId": {
+                        "type": "string",
+                        "description": "ID of the user client"
+                      }
+                    },
+                    "required": [
+                      "userClientId"
+                    ]
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of locations (raw array, no envelope)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "Raw array \u2014 no {status, data} wrapper.",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "address": {
+                        "type": "string"
+                      },
+                      "company": {
+                        "type": "object",
+                        "description": "Company object (NOT a string). Contains a 'name' field.",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "photos": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      },
+                      "bio": {
+                        "type": "string"
+                      },
+                      "price": {
+                        "type": "number",
+                        "format": "double"
+                      },
+                      "currency": {
+                        "type": "string",
+                        "example": "USD"
+                      },
+                      "phone": {
+                        "type": "string"
+                      },
+                      "coordinates": {
+                        "type": "object",
+                        "properties": {
+                          "lat": {
+                            "type": "number",
+                            "format": "double"
+                          },
+                          "lng": {
+                            "type": "number",
+                            "format": "double"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/getLocationsForCompany": {
+      "post": {
+        "summary": "Retrieves all locations associated with the user's company.",
+        "description": "",
+        "operationId": "getLocationsForCompany",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Location"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getLocationsForCompanyForAdmin": {
+      "post": {
+        "summary": "Retrieves all locations for the admin's company, with fully enriched data.",
+        "description": "",
+        "operationId": "getLocationsForCompanyForAdmin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {}
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Location"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getSumTipsForAdmin": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getSumTipsForAdmin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getSumTipsForAdminPerAttendant": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getSumTipsForAdminPerAttendant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getTicketByPIN": {
+      "post": {
+        "summary": "Fetch a ticket by PIN code (NOT IMPLEMENTED)",
+        "description": "WARNING: This endpoint is NOT IMPLEMENTED on the backend as of 2026-02-06. Returns 400 with 'not implemented' error. The backend proxies to https://api.knex-app.xyz/api/getTicketByPIN which is not available.",
+        "operationId": "getTicketByPIN",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "pin": {
+                        "type": "string",
+                        "description": "6-digit PIN code"
+                      }
+                    },
+                    "required": [
+                      "pin"
+                    ]
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "example": 400
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "not implemented"
+                    },
+                    "trace": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getTicketList": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getTicketList",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getTicketListForAdmin": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getTicketListForAdmin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getTipsForAdmin": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getTipsForAdmin",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getUser": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getUser",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getUserByEmail": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getUserByEmail",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getUserClient": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getUserClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getUserProfileByEmail": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "getUserProfileByEmail",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/getUsersForCompany": {
+      "post": {
+        "summary": "Retrieves all users for the admin's company.",
+        "description": "Fetches a list of all users associated with the company of the authenticated administrator or business owner.",
+        "operationId": "getUsersForCompany",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "An array of User objects.",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/insert": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "insertData",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/linkUserClientToTicketByProvisionalPIN": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "linkUserClientToTicketByProvisionalPIN",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/listUserClients": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "listUserClients",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/migrateData": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "migrateDataToNewModels",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/registerAttendant": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "registerAttendant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/search": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "searchData",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/searchUser": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "searchUser",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/searchUserClient": {
+      "post": {
+        "summary": "Search for a user client profile by email",
+        "description": "Searches the UserClient collection by email address. Returns matching profile(s) in a list. Status uses 'VALID' (not 'success').",
+        "operationId": "searchUserClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Email address to search for"
+                      }
+                    },
+                    "required": [
+                      "email"
+                    ]
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User client found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "VALID"
+                        },
+                        "result": {
+                          "type": "string",
+                          "example": "READ"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Documents read."
+                        }
+                      }
+                    },
+                    "data": {
+                      "type": "array",
+                      "description": "Always returns a list, even for a single result.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "uid": {
+                            "type": "string",
+                            "description": "Firebase Auth UID"
+                          },
+                          "email": {
+                            "type": "string",
+                            "format": "email"
+                          },
+                          "firstName": {
+                            "type": "string"
+                          },
+                          "lastName": {
+                            "type": "string"
+                          },
+                          "phoneNumber": {
+                            "type": "string"
+                          },
+                          "photo": {
+                            "type": "string",
+                            "description": "Base64-encoded JPEG with EXIF data"
+                          },
+                          "address": {
+                            "type": "string"
+                          },
+                          "zipCode": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "type": "string"
+                          },
+                          "city": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized \u2014 invalid or expired ID token"
+          },
+          "500": {
+            "description": "Internal Server Error \u2014 known issue: 'Converting circular structure to JSON'"
+          }
+        }
+      }
+    },
+    "/setCarLocation": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "setCarLocation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/setKeysLocation": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "setKeysLocation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/setTicketStatus": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "setTicketStatus",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/setTicketTip": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "setTip",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/setTicketToCancel": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "setToCancelTicketNumber",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/setTicketToProcessing": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "setTicketToProcessing",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/setToCancelForClient": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "setToCancelForClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/setToDeparture": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "setToDeparture",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/setToDepartureCasual": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "setToDepartureCasual",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ticketToParked": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "ticketToParked",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/update": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "updateData",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/updateAttendant": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "updateAttendant",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/updateCompany": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "updateCompany",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/updateLocation": {
+      "post": {
+        "summary": "Updates an existing physical location.",
+        "description": "",
+        "operationId": "updateLocation",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "The ID of the location to update."
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "The new name of the location."
+                      },
+                      "address": {
+                        "type": "string",
+                        "description": "The new physical address of the location."
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/updateUser": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "updateUser",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/updateUserClient": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "updateUserClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/uploadImage": {
+      "post": {
+        "summary": "No description available",
+        "description": "",
+        "operationId": "uploadImage",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Generic payload for the endpoint."
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/createVehicle": {
+      "post": {
+        "summary": "Create a new vehicle record for a user client",
+        "description": "Creates a vehicle document in Firestore. Backend auto-adds email, createdBy, createdAt, updatedAt fields. Timestamps are Firestore objects {_seconds, _nanoseconds}.",
+        "operationId": "createVehicle",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string",
+                    "description": "Firebase authentication token."
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "user_client_id": {
+                        "type": "string",
+                        "description": "ID of the owning UserClient"
+                      },
+                      "vehicle_make": {
+                        "type": "string",
+                        "description": "Make of the vehicle (e.g. Toyota)"
+                      },
+                      "vehicle_model": {
+                        "type": "string",
+                        "description": "Model of the vehicle (e.g. Camry)"
+                      },
+                      "license_plate": {
+                        "type": "string",
+                        "description": "License plate number"
+                      },
+                      "color": {
+                        "type": "string",
+                        "description": "Color of the vehicle"
+                      }
+                    },
+                    "required": [
+                      "user_client_id",
+                      "vehicle_make",
+                      "vehicle_model",
+                      "license_plate",
+                      "color"
+                    ]
+                  }
+                },
+                "required": [
+                  "idToken",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vehicle created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "example": "VALID"
+                        },
+                        "result": {
+                          "type": "string",
+                          "example": "CREATE"
+                        },
+                        "message": {
+                          "type": "string",
+                          "example": "Doc <id> created."
+                        }
+                      }
+                    },
+                    "data": {
+                      "type": "object",
+                      "description": "Single vehicle object (not a list).",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "user_client_id": {
+                          "type": "string"
+                        },
+                        "vehicle_make": {
+                          "type": "string"
+                        },
+                        "vehicle_model": {
+                          "type": "string"
+                        },
+                        "license_plate": {
+                          "type": "string"
+                        },
+                        "color": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string",
+                          "description": "Auto-added by backend"
+                        },
+                        "createdBy": {
+                          "type": "string",
+                          "description": "Auto-added by backend"
+                        },
+                        "createdAt": {
+                          "type": "object",
+                          "description": "Firestore timestamp",
+                          "properties": {
+                            "_seconds": {
+                              "type": "integer"
+                            },
+                            "_nanoseconds": {
+                              "type": "integer"
+                            }
+                          }
+                        },
+                        "updatedAt": {
+                          "type": "object",
+                          "description": "Firestore timestamp",
+                          "properties": {
+                            "_seconds": {
+                              "type": "integer"
+                            },
+                            "_nanoseconds": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    }
+  }
+}

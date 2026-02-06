@@ -1,0 +1,26 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "KNEX (iOS Debug)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "A2A955FC-C201-4A76-A228-A06553C48D7B",
+      "flutterMode": "debug"
+    },
+    {
+      "name": "KNEX (iOS Profile)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "A2A955FC-C201-4A76-A228-A06553C48D7B",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "KNEX (iOS Release)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "A2A955FC-C201-4A76-A228-A06553C48D7B",
+      "flutterMode": "release"
+    }
+  ]
+}
