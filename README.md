@@ -100,6 +100,30 @@ The app connects to the KNEX backend at `https://client.knex-app.xyz/api`. All a
 
 ---
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/media/knex-screenshots/01-home-screen.png" width="200" alt="Home Screen" />
+  <img src="docs/media/knex-screenshots/02-site-details.png" width="200" alt="Site Details" />
+  <img src="docs/media/knex-screenshots/03-disclaimer-dialog.png" width="200" alt="Disclaimer Dialog" />
+  <img src="docs/media/knex-screenshots/04-add-vehicle.png" width="200" alt="Add Vehicle" />
+</p>
+
+<p align="center">
+  <img src="docs/media/knex-screenshots/05-ticket-barcode.png" width="200" alt="Ticket Barcode" />
+  <img src="docs/media/knex-screenshots/06-ticket-active.png" width="200" alt="Active Ticket" />
+  <img src="docs/media/knex-screenshots/07-ticket-request-pickup.png" width="200" alt="Request Pickup" />
+  <img src="docs/media/knex-screenshots/08-ticket-request-pickup-alt.png" width="200" alt="Request Pickup Alt" />
+</p>
+
+<p align="center">
+  <img src="docs/media/knex-screenshots/09-timer-countdown.png" width="200" alt="Timer Countdown" />
+  <img src="docs/media/knex-screenshots/10-timer-countdown-alt.png" width="200" alt="Timer Countdown Alt" />
+  <img src="docs/media/knex-screenshots/11-tip-bottom-sheet.png" width="200" alt="Tip Bottom Sheet" />
+</p>
+
+---
+
 ## Screens
 
 | Screen | Description |
