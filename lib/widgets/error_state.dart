@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../config/asset_paths.dart';
+
 /// A standardized error state widget for displaying failures with retry actions.
 ///
 /// Supports a primary retry action and an optional secondary action. The [compact]
@@ -46,9 +48,19 @@ class ErrorStateWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (!compact)
+              Opacity(
+                opacity: 0.15,
+                child: Image.asset(
+                  AssetPaths.knexLogo,
+                  width: 80,
+                  height: 80,
+                ),
+              ),
+            if (!compact) const SizedBox(height: 16),
             Icon(
               Icons.error_outline,
-              size: compact ? 40 : 64,
+              size: compact ? 40 : 48,
               color: theme.colorScheme.error,
             ),
             SizedBox(height: compact ? 8 : 16),

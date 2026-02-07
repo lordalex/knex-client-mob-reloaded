@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../config/theme/app_colors.dart';
 import '../providers/api_provider.dart';
 import '../providers/ticket_provider.dart';
 import '../services/api/endpoints.dart';
-import '../widgets/app_button.dart';
 
 /// Bottom sheet for tipping the valet after service completion.
 ///
-/// Shows preset tip amounts and a custom input option. Submits the tip
-/// via the setTicketTip API endpoint.
+/// Shows preset tip amounts with USD prefix and a custom input option.
+/// Submits the tip via the setTicketTip API endpoint.
 class TipBottomSheet extends ConsumerStatefulWidget {
   final VoidCallback? onClose;
 
@@ -42,10 +42,15 @@ class _TipBottomSheetState extends ConsumerState<TipBottomSheet> {
     super.dispose();
   }
 
+  double get _currentAmount {
+    if (_useCustom) {
+      return double.tryParse(_customController.text) ?? 0;
+    }
+    return _selectedTip ?? 0;
+  }
+
   Future<void> _submitTip() async {
-    final amount = _useCustom
-        ? double.tryParse(_customController.text) ?? 0
-        : _selectedTip ?? 0;
+    final amount = _currentAmount;
 
     if (amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -88,6 +93,7 @@ class _TipBottomSheetState extends ConsumerState<TipBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final amount = _currentAmount;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -100,7 +106,7 @@ class _TipBottomSheetState extends ConsumerState<TipBottomSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Tip Your Valet',
+            'Tip Amount',
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w600,
             ),
@@ -114,17 +120,17 @@ class _TipBottomSheetState extends ConsumerState<TipBottomSheet> {
           ),
           const SizedBox(height: 20),
 
-          // Preset amounts
+          // Preset amounts with USD prefix
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: _presets.map((amount) {
-              final isSelected = !_useCustom && _selectedTip == amount;
+            children: _presets.map((tipAmount) {
+              final isSelected = !_useCustom && _selectedTip == tipAmount;
               return ChoiceChip(
-                label: Text('\$${amount.toStringAsFixed(0)}'),
+                label: Text('USD ${tipAmount.toStringAsFixed(0)}'),
                 selected: isSelected,
                 onSelected: (_) {
                   setState(() {
-                    _selectedTip = amount;
+                    _selectedTip = tipAmount;
                     _useCustom = false;
                   });
                 },
@@ -149,6 +155,7 @@ class _TipBottomSheetState extends ConsumerState<TipBottomSheet> {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
+                    onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
                       prefixText: '\$ ',
                       hintText: '0.00',
@@ -160,13 +167,60 @@ class _TipBottomSheetState extends ConsumerState<TipBottomSheet> {
               ],
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
-          AppButton(
-            label: 'Send Tip',
-            isLoading: _isLoading,
-            onPressed: _isLoading ? null : _submitTip,
+          // Total Amount row
+          if (amount > 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Amount',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  Text(
+                    '\$${amount.toStringAsFixed(2)}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 20),
+
+          // Add Tip button — dark navy
+          SizedBox(
             width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _submitTip,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.light.secondary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Add Tip'),
+            ),
           ),
           const SizedBox(height: 8),
           TextButton(

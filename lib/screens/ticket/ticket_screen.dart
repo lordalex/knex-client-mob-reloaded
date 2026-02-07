@@ -1,20 +1,23 @@
 import 'dart:async';
 
-import 'package:barcode_widget/barcode_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/app_constants.dart';
+import '../../config/theme/app_colors.dart';
 import '../../models/ticket.dart';
 import '../../providers/api_provider.dart';
+import '../../providers/locations_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../../services/api/endpoints.dart';
-import '../../widgets/app_button.dart';
+import '../../widgets/gradient_background.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/ticket_card.dart';
 
-/// Active ticket screen showing ticket status, barcode, and action buttons.
+/// Active ticket screen showing branded ticket card with barcode and actions.
 ///
 /// Polls the backend every [AppConstants.ticketPollIntervalSeconds] to update
 /// the ticket status. Routes to timer/completed screens based on status changes.
@@ -51,12 +54,12 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
 
   Future<void> _pollTicket() async {
     final profile = ref.read(userProfileProvider);
-    if (profile?.email == null) return;
+    if (profile?.id == null) return;
 
     try {
       final response = await ref.read(apiClientProvider).post<Ticket>(
         Endpoints.getLatestTicket,
-        data: {'email': profile!.email},
+        data: {'userClientId': profile!.id},
         fromData: (json) {
           final raw = json is List ? json.first : json;
           return Ticket.fromJson(raw as Map<String, dynamic>);
@@ -80,7 +83,6 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
           context.go('/home');
         }
       }
-      // If poll fails, keep the local ticket data — don't clear it.
     } catch (e) {
       // Silent — polling errors are non-fatal, local ticket data is preserved.
     }
@@ -162,162 +164,144 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
   @override
   Widget build(BuildContext context) {
     final ticket = ref.watch(activeTicketProvider);
-    final theme = Theme.of(context);
 
     if (ticket == null) {
       return const Scaffold(body: LoadingIndicator());
     }
 
+    // Resolve location name/address from cache
+    final locations = ref.watch(locationsProvider);
+    final location = locations.where((l) => l.id == ticket.locationId).firstOrNull;
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Your Ticket'),
-        automaticallyImplyLeading: false,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            // Status badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: _statusColor(ticket.status, theme),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                _statusLabel(ticket.status),
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Ticket number
-            if (ticket.ticketNumber != null) ...[
-              Text(
-                'Ticket #${ticket.ticketNumber}',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            // Barcode
-            if (ticket.pin != null && ticket.pin!.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: BarcodeWidget(
-                  barcode: Barcode.code128(),
-                  data: ticket.pin!,
-                  width: 240,
-                  height: 80,
-                  drawText: true,
-                ),
-              ),
-            const SizedBox(height: 16),
-
-            // PIN
-            if (ticket.pin != null) ...[
-              Text('PIN', style: theme.textTheme.labelMedium),
-              Text(
-                ticket.pin!,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 4,
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-
-            // Info card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
+      body: GradientBackground(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              // Title bar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Row(
                   children: [
-                    _infoRow('Status', _statusLabel(ticket.status)),
-                    if (ticket.ticketNumber != null)
-                      _infoRow('Ticket #', ticket.ticketNumber!),
-                    _infoRow('Location', ticket.locationId),
-                    if (ticket.createdAt != null)
-                      _infoRow('Created', _formatTime(ticket.createdAt!)),
+                    const SizedBox(width: 48),
+                    const Expanded(
+                      child: Text(
+                        'Your Ticket',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 48),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-            // Action buttons
-            if (ticket.status == Ticket.statusPending ||
-                ticket.status == Ticket.statusAccepted) ...[
-              AppButton(
-                label: 'Request My Car',
-                isLoading: _isRequestingDeparture,
-                onPressed: _isRequestingDeparture ? null : _requestDeparture,
-              ),
-              const SizedBox(height: 12),
-              AppButton(
-                label: 'Cancel Request',
-                isOutlined: true,
-                isLoading: _isCancelling,
-                onPressed: _isCancelling ? null : _cancelTicket,
+              // Ticket card with slide-up animation
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(bottom: bottomPadding + 16),
+                  child: Column(
+                    children: [
+                      TicketCard(
+                        ticket: ticket,
+                        locationName: location?.name,
+                        locationAddress: location?.address,
+                      ).animate().slideY(
+                        begin: 0.15,
+                        duration: 500.ms,
+                        curve: Curves.easeOutCubic,
+                      ).fadeIn(duration: 400.ms),
+                      const SizedBox(height: 28),
+
+                      // Action buttons
+                      if (ticket.status == Ticket.statusPending ||
+                          ticket.status == Ticket.statusAccepted ||
+                          ticket.status == 'Arrived') ...[
+                        // Request Pick Up button
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton.icon(
+                              onPressed: _isRequestingDeparture
+                                  ? null
+                                  : _requestDeparture,
+                              icon: _isRequestingDeparture
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.chevron_right),
+                              label: Text(
+                                _isRequestingDeparture
+                                    ? 'Requesting...'
+                                    : 'Request Pick Up',
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.light.secondary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Cancel button
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: OutlinedButton(
+                              onPressed:
+                                  _isCancelling ? null : _cancelTicket,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.white70,
+                                side: BorderSide(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: _isCancelling
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white70,
+                                      ),
+                                    )
+                                  : const Text('Cancel Ticket'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
-  }
-
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          )),
-          Text(value, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          )),
-        ],
-      ),
-    );
-  }
-
-  Color _statusColor(String status, ThemeData theme) {
-    return switch (status) {
-      Ticket.statusPending => theme.colorScheme.tertiary,
-      Ticket.statusAccepted => Colors.blue,
-      Ticket.statusInProgress => Colors.orange,
-      Ticket.statusCompleted => Colors.green,
-      Ticket.statusCancelled => Colors.grey,
-      _ => theme.colorScheme.primary,
-    };
-  }
-
-  String _statusLabel(String status) {
-    return switch (status) {
-      Ticket.statusPending => 'Waiting for Valet',
-      Ticket.statusAccepted => 'Valet Accepted',
-      Ticket.statusInProgress => 'In Progress',
-      Ticket.statusCompleted => 'Completed',
-      Ticket.statusCancelled => 'Cancelled',
-      _ => status,
-    };
-  }
-
-  String _formatTime(DateTime dt) {
-    final hour = dt.hour > 12 ? dt.hour - 12 : dt.hour;
-    final period = dt.hour >= 12 ? 'PM' : 'AM';
-    return '${hour == 0 ? 12 : hour}:${dt.minute.toString().padLeft(2, '0')} $period';
   }
 }

@@ -2,9 +2,9 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../config/asset_paths.dart';
 import '../../services/auth/auth_providers.dart';
 import '../../utils/florida_messages.dart';
 import '../../utils/validators.dart';
@@ -96,13 +96,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                 // -- KNEX logo --
                 Center(
-                  child: Text(
-                    'KNEX',
-                    style: GoogleFonts.interTight(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFFE21C3D),
-                    ),
+                  child: Image.asset(
+                    AssetPaths.knexLogo,
+                    width: 80,
+                    height: 80,
                   ),
                 ),
                 const SizedBox(height: 8),

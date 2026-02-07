@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/app_constants.dart';
+import '../../config/asset_paths.dart';
 import '../../providers/app_state_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -42,10 +43,12 @@ class ProfileScreen extends ConsumerWidget {
                   backgroundColor: theme.colorScheme.primaryContainer,
                   backgroundImage: _profileImage(profile?.photo),
                   child: profile?.photo == null
-                      ? Icon(
-                          Icons.person,
-                          size: 48,
-                          color: theme.colorScheme.onPrimaryContainer,
+                      ? Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Image.asset(
+                            AssetPaths.valetOneLogoBlack,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
                         )
                       : null,
                 ),

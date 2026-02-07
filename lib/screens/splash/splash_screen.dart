@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../config/asset_paths.dart';
 import '../../config/theme/app_colors.dart';
 import '../../widgets/loading_indicator.dart';
 
@@ -20,13 +20,10 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'KNEX',
-              style: GoogleFonts.interTight(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: AppColors.light.primary, // KNEX red (#E21C3D)
-              ),
+            Image.asset(
+              AssetPaths.knexLogoWhite,
+              width: 120,
+              height: 120,
             ),
             const SizedBox(height: 32),
             const LoadingIndicator(size: 40, color: Colors.white),

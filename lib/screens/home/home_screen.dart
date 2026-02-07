@@ -1,9 +1,12 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../config/app_constants.dart';
+import '../../config/asset_paths.dart';
+import '../../config/theme/app_colors.dart';
 import '../../models/location.dart';
 import '../../providers/api_provider.dart';
 import '../../providers/app_state_provider.dart';
@@ -224,77 +227,104 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final sorted = _sortLocations(locations);
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _loadLocations,
-        child: CustomScrollView(
-          slivers: [
-            // Promo carousel
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: CarouselSlider(
-                  options: CarouselOptions(
-                    height: 160,
-                    autoPlay: true,
-                    autoPlayInterval: const Duration(seconds: 5),
-                    enlargeCenterPage: true,
-                    viewportFraction: 0.85,
-                  ),
-                  items: _buildBanners(theme),
-                ),
-              ),
-            ),
+    final topPadding = MediaQuery.of(context).padding.top;
 
-            // Section header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Valet locations available near you',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: RefreshIndicator(
+          onRefresh: _loadLocations,
+          child: CustomScrollView(
+            slivers: [
+              // Dark navy header that bleeds into the Dynamic Island / status bar
+              SliverToBoxAdapter(
+                child: Container(
+                  color: AppColors.light.secondary,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: topPadding + 12,
+                      left: 20,
+                      right: 20,
+                      bottom: 16,
+                    ),
+                    child: Text(
+                      'Request valet?',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.tune),
-                      onPressed: () => context.push('/listConfig'),
+                  ),
+                ),
+              ),
+
+              // Promo carousel
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: CarouselSlider(
+                    options: CarouselOptions(
+                      height: 160,
+                      autoPlay: true,
+                      autoPlayInterval: const Duration(seconds: 5),
+                      enlargeCenterPage: true,
+                      viewportFraction: 0.85,
                     ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Location list
-            if (sorted.isEmpty)
-              const SliverFillRemaining(
-                child: Center(
-                  child: Text('No locations found nearby.'),
-                ),
-              )
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final loc = sorted[index];
-                    return LocationCard(
-                      location: loc,
-                      distance: _getDistance(loc),
-                      onTap: () =>
-                          context.push('/siteDetails?id=${loc.id}'),
-                    );
-                  },
-                  childCount: sorted.length,
+                    items: _buildBanners(theme),
+                  ),
                 ),
               ),
 
-            // Bottom padding
-            const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
-          ],
+              // Section header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Valet locations available near you',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.tune),
+                        onPressed: () => context.push('/listConfig'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Location list
+              if (sorted.isEmpty)
+                const SliverFillRemaining(
+                  child: Center(
+                    child: Text('No locations found nearby.'),
+                  ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final loc = sorted[index];
+                      return LocationCard(
+                        location: loc,
+                        distance: _getDistance(loc),
+                        onTap: () =>
+                            context.push('/siteDetails?id=${loc.id}'),
+                      );
+                    },
+                    childCount: sorted.length,
+                  ),
+                ),
+
+              // Bottom padding
+              const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
+            ],
+          ),
         ),
       ),
     );
@@ -302,10 +332,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   List<Widget> _buildBanners(ThemeData theme) {
     final banners = [
-      ('Valet Parking Made Easy', Icons.local_parking),
-      ('Skip the Hassle', Icons.directions_car),
-      ('Tip Your Valet', Icons.attach_money),
-      ('Save Your Favorites', Icons.favorite),
+      (
+        'Request valet?',
+        'Find your nearest\npremium valet',
+        AppColors.light.secondary,
+        AssetPaths.valetOneLogo,
+      ),
+      (
+        'Skip the hassle',
+        'Premium parking\nat your fingertips',
+        AppColors.light.tertiary,
+        AssetPaths.knexLogoWhite,
+      ),
+      (
+        'Tip your valet',
+        'Show appreciation\nwith a quick tip',
+        const Color(0xFF0A2647),
+        AssetPaths.valetOneLogo,
+      ),
+      (
+        'Save favorites',
+        'Quick access to\nyour top spots',
+        const Color(0xFF144272),
+        AssetPaths.knexLogoWhite,
+      ),
     ];
 
     return banners.map((banner) {
@@ -313,35 +363,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            colors: [
-              theme.colorScheme.primary,
-              theme.colorScheme.primary.withValues(alpha: 0.7),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: banner.$3,
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  banner.$1,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+        child: Stack(
+          children: [
+            // Faded logo watermark
+            Positioned(
+              right: -10,
+              bottom: -10,
+              child: Opacity(
+                opacity: 0.1,
+                child: Image.asset(
+                  banner.$4,
+                  width: 140,
+                  height: 140,
                 ),
               ),
-              Icon(
-                banner.$2,
-                size: 48,
-                color: Colors.white.withValues(alpha: 0.8),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    banner.$1,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    banner.$2,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }).toList();

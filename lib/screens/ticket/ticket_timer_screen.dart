@@ -7,17 +7,19 @@ import 'package:go_router/go_router.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
 import '../../config/app_constants.dart';
+import '../../config/asset_paths.dart';
 import '../../models/ticket.dart';
 import '../../providers/api_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/ticket_provider.dart';
 import '../../services/api/endpoints.dart';
+import '../../widgets/gradient_background.dart';
 import '../../widgets/loading_indicator.dart';
 
 /// Live timer screen showing elapsed parking duration.
 ///
-/// Displays a circular progress indicator and elapsed time. Polls the backend
-/// for status changes and navigates to completed screen when done.
+/// Full-screen gradient background, glowing circular timer, branded footer.
+/// Polls the backend for status changes and navigates to completed screen.
 class TicketTimerScreen extends ConsumerStatefulWidget {
   const TicketTimerScreen({super.key});
 
@@ -93,7 +95,6 @@ class _TicketTimerScreenState extends ConsumerState<TicketTimerScreen> {
   @override
   Widget build(BuildContext context) {
     final ticket = ref.watch(activeTicketProvider);
-    final theme = Theme.of(context);
 
     if (ticket == null) {
       return const Scaffold(body: LoadingIndicator());
@@ -109,86 +110,140 @@ class _TicketTimerScreenState extends ConsumerState<TicketTimerScreen> {
     // Cap progress at 1.0 for visual (2 hours = full circle)
     final progress = (_elapsed.inMinutes / 120).clamp(0.0, 1.0);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Valet In Progress'),
-        automaticallyImplyLeading: false,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularPercentIndicator(
-                radius: 120,
-                lineWidth: 12,
-                percent: progress,
-                center: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.timer_outlined,
-                      size: 32,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      timeStr,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                    Text(
-                      'Elapsed',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-                progressColor: theme.colorScheme.primary,
-                backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                circularStrokeCap: CircularStrokeCap.round,
-              ),
-              const SizedBox(height: 32),
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-              Text(
-                'Your car is being parked',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
+    return Scaffold(
+      body: GradientBackground(
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
+
+              // Title
+              const Text(
+                'Pick your car',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'We\'ll notify you when your valet service is complete.',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                'Your car is being parked',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 14,
                 ),
-                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
 
-              if (ticket.pin != null)
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('PIN: ', style: theme.textTheme.titleMedium),
-                        Text(
-                          ticket.pin!,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 4,
-                          ),
+              // Timer — centered in remaining space
+              Expanded(
+                child: Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          blurRadius: 60,
+                          spreadRadius: 20,
                         ),
                       ],
                     ),
+                    child: CircularPercentIndicator(
+                      radius: 140,
+                      lineWidth: 10,
+                      percent: progress,
+                      center: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.timer_outlined,
+                            size: 28,
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            timeStr,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 44,
+                              fontWeight: FontWeight.bold,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'ELAPSED',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              fontSize: 12,
+                              letterSpacing: 2,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      progressColor: Colors.white.withValues(alpha: 0.9),
+                      backgroundColor: Colors.white.withValues(alpha: 0.12),
+                      circularStrokeCap: CircularStrokeCap.round,
+                    ),
                   ),
                 ),
+              ),
+
+              // Pay button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      // Navigate to pay/completed when ready
+                      context.go('/ticketCompleted');
+                    },
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: const Text('Pay valet parking'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.4),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Footer — Powered by KNEX + Valet One logo
+              Padding(
+                padding: EdgeInsets.only(bottom: bottomPadding + 16),
+                child: Column(
+                  children: [
+                    Image.asset(
+                      AssetPaths.valetOneLogo,
+                      height: 24,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Powered by KNEX',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        fontSize: 11,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
