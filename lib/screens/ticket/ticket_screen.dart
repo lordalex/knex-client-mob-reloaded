@@ -59,7 +59,6 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
     try {
       final response = await ref.read(apiClientProvider).post<Ticket>(
         Endpoints.getLatestTicket,
-        data: {'userClientId': profile!.id},
         fromData: (json) {
           final raw = json is List ? json.first : json;
           return Ticket.fromJson(raw as Map<String, dynamic>);
@@ -72,7 +71,8 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
         final ticket = response.data!;
         ref.read(activeTicketProvider.notifier).state = ticket;
 
-        if (ticket.status == Ticket.statusInProgress) {
+        if (ticket.status == Ticket.statusDeparture ||
+            ticket.status == Ticket.statusProcessingDeparture) {
           _pollTimer?.cancel();
           context.go('/ticketTimer');
         } else if (ticket.status == Ticket.statusCompleted) {
@@ -83,8 +83,8 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
           context.go('/home');
         }
       }
-    } catch (e) {
-      // Silent — polling errors are non-fatal, local ticket data is preserved.
+    } catch (_) {
+      // Silent — polling errors are non-fatal
     }
   }
 
@@ -222,9 +222,9 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
                       const SizedBox(height: 28),
 
                       // Action buttons
-                      if (ticket.status == Ticket.statusPending ||
-                          ticket.status == Ticket.statusAccepted ||
-                          ticket.status == 'Arrived') ...[
+                      if (ticket.status == Ticket.statusArrival ||
+                          ticket.status == Ticket.statusProcessingArrival ||
+                          ticket.status == Ticket.statusParked) ...[
                         // Request Pick Up button
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),

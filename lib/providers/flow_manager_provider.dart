@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -24,6 +26,24 @@ final flowManagerProvider = FutureProvider.autoDispose<String>((ref) async {
     print('[FlowManager] No current user — routing to /login');
     return '/login';
   }
+
+  // DEBUG: Print JWT token for API testing (remove before release)
+  final idToken = await currentUser.getIdToken();
+  print('');
+  print('╔══════════════════════════════════════════════════════════════╗');
+  print('║  🔑 JWT TOKEN — copy lines between START and END           ║');
+  print('╠══════════════════════════════════════════════════════════════╣');
+  print('║  User:  ${currentUser.email}');
+  print('║  UID:   ${currentUser.uid}');
+  print('╚══════════════════════════════════════════════════════════════╝');
+  print('----TOKEN-START----');
+  // Split into 800-char chunks so print() doesn't truncate
+  final t = idToken ?? '';
+  for (var i = 0; i < t.length; i += 800) {
+    print(t.substring(i, i + 800 > t.length ? t.length : i + 800));
+  }
+  print('----TOKEN-END----');
+  print('');
 
   final apiClient = ref.read(apiClientProvider);
   final schemaService = SchemaService();
@@ -107,27 +127,31 @@ final flowManagerProvider = FutureProvider.autoDispose<String>((ref) async {
   print('[FlowManager] Profile is complete. Stored.');
 
   // 4. Check for active ticket
+  Ticket? activeTicket;
   try {
     final ticketResponse = await apiClient.post<Ticket>(
       Endpoints.getLatestTicket,
-      data: {'userClientId': profile.id},
       fromData: (json) => Ticket.fromJson(json as Map<String, dynamic>),
     );
 
     if (ticketResponse.isSuccess && ticketResponse.data != null) {
       final ticket = ticketResponse.data!;
       print('[FlowManager] Latest ticket: status=${ticket.status}');
-      if (ticket.isActive) {
-        ref.read(activeTicketProvider.notifier).state = ticket;
-        print('[FlowManager] => Routing to /ticket (active ticket)');
-        return '/ticket';
-      }
+      if (ticket.isActive) activeTicket = ticket;
     } else {
       print('[FlowManager] No active ticket found');
     }
   } catch (e) {
     print('[FlowManager] Ticket check failed: $e');
   }
+
+  if (activeTicket != null) {
+    ref.read(activeTicketProvider.notifier).state = activeTicket;
+    print('[FlowManager] => Routing to /ticket (active ticket)');
+    return '/ticket';
+  }
+
+  print('[FlowManager] No active ticket found');
 
   // 5. No active ticket -> go home
   print('[FlowManager] => Routing to /home');

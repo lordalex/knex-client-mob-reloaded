@@ -1,0 +1,1526 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "KNEX Valet Client API",
+    "version": "1.0.0",
+    "description": "This API is designed for clients of the KNEX valet service. It provides endpoints for managing user profiles, vehicles, and valet tickets. All requests should be sent to the base URL: https://client.knex-app.xyz/api"
+  },
+  "servers": [
+    {
+      "url": "https://client.knex-app.xyz/api",
+      "description": "Production API server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Firebase JWT (idToken). Mechanism: Authenticated requests wrap the payload in an envelope: { \"idToken\": \"<JWT>\", \"data\": { ...payload } }. Alternatively, the token can be provided in the Authorization header as a Bearer token."
+      }
+    },
+    "schemas": {
+      "UserClientProfile": {
+        "type": "object",
+        "description": "Represents a client's user profile.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Firestore ID",
+            "example": "user_client_12345"
+          },
+          "uid": {
+            "type": "string",
+            "description": "Firebase Auth UID",
+            "example": "firebase_uid_67890"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email address",
+            "example": "john.doe@example.com"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "First name (alias: firstname)",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Last name (alias: lastname)",
+            "example": "Doe"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "Phone number (alias: phone, phonenumber)",
+            "example": "+15551234567"
+          },
+          "photo": {
+            "type": "string",
+            "description": "Base64 JPEG image string",
+            "example": "data:image/jpeg;base64,..."
+          },
+          "address": {
+            "type": "string",
+            "description": "Physical address",
+            "example": "123 Main St"
+          },
+          "city": {
+            "type": "string",
+            "description": "City of residence",
+            "example": "Aventura"
+          },
+          "state": {
+            "type": "string",
+            "description": "State of residence",
+            "example": "Florida"
+          },
+          "zipCode": {
+            "type": "string",
+            "description": "Postal/Zip code",
+            "example": "33180"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the profile was created."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the profile was last updated."
+          }
+        },
+        "required": [
+          "email",
+          "firstName",
+          "lastName",
+          "phoneNumber"
+        ]
+      },
+      "Vehicle": {
+        "type": "object",
+        "description": "Represents a client's vehicle information.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the vehicle.",
+            "example": "vehicle_12345"
+          },
+          "user_client_id": {
+            "type": "string",
+            "description": "The ID of the client who owns the vehicle.",
+            "example": "user_client_12345"
+          },
+          "vehicle_make": {
+            "type": "string",
+            "description": "The manufacturer of the vehicle.",
+            "example": "Toyota"
+          },
+          "vehicle_model": {
+            "type": "string",
+            "description": "The specific model of the vehicle.",
+            "example": "Camry"
+          },
+          "vehicle_year": {
+            "type": "string",
+            "description": "The manufacture year of the vehicle (Optional).",
+            "example": "2023"
+          },
+          "license_plate": {
+            "type": "string",
+            "description": "The vehicle's registration license plate number.",
+            "example": "ABC-1234"
+          },
+          "color": {
+            "type": "string",
+            "description": "The primary color of the vehicle.",
+            "example": "Silver"
+          },
+          "vin": {
+            "type": "string",
+            "description": "The unique Vehicle Identification Number (Optional).",
+            "example": "1HGCM8..."
+          }
+        },
+        "required": [
+          "user_client_id",
+          "vehicle_make",
+          "vehicle_model",
+          "license_plate",
+          "color"
+        ]
+      },
+      "Ticket": {
+        "type": "object",
+        "description": "Represents a valet parking ticket.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the ticket.",
+            "example": "ticket_12345"
+          },
+          "ticket_number": {
+            "type": "string",
+            "description": "Human-readable ticket number.",
+            "example": "TKT-2024-0512"
+          },
+          "user_client_id": {
+            "type": "string",
+            "description": "The ID of the client associated with the ticket.",
+            "example": "client_123"
+          },
+          "vehicle_id": {
+            "type": "string",
+            "description": "The ID of the vehicle associated with the ticket.",
+            "example": "veh_456"
+          },
+          "location_id": {
+            "type": "string",
+            "description": "The ID of the location where the ticket was issued.",
+            "example": "loc_789"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status of the ticket",
+            "enum": [
+              "Arrival",
+              "Processing-Arrival",
+              "Parked",
+              "Departure",
+              "Processing-Departure",
+              "Completed",
+              "Cancelled"
+            ],
+            "example": "Parked"
+          },
+          "pin": {
+            "type": "string",
+            "description": "6-digit security PIN associated with the ticket.",
+            "example": "123456"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Internal or client-facing notes about the ticket.",
+            "example": "Always prefers parking in the shade."
+          },
+          "tip": {
+            "type": "number",
+            "description": "Tip amount added to the ticket.",
+            "example": 5.00
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the ticket was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the ticket was last updated."
+          }
+        },
+        "required": [
+          "id",
+          "ticket_number",
+          "status"
+        ]
+      },
+      "ValetLocation": {
+        "type": "object",
+        "description": "Represents a valet parking site.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the location.",
+            "example": "fpyOo8sHXzMvTvDZyyJR"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the location.",
+            "example": "Downtown Garage"
+          },
+          "address": {
+            "type": "string",
+            "description": "Physical address of the location.",
+            "example": "100 City Center"
+          },
+          "company": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "example": "KNEX Valet Services"
+              }
+            }
+          },
+          "coordinates": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number",
+                "example": 25.9535
+              },
+              "lng": {
+                "type": "number",
+                "example": -80.1421
+              }
+            }
+          },
+          "price": {
+            "type": "number",
+            "description": "Valet service price.",
+            "example": 20.00
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code (e.g., USD).",
+            "example": "USD"
+          },
+          "bio": {
+            "type": "string",
+            "description": "Description of the location.",
+            "example": "Premium valet service in the heart of downtown."
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "url"
+            },
+            "example": [
+              "https://example.com/photo1.jpg"
+            ]
+          },
+          "phone": {
+            "type": "string",
+            "description": "Contact phone number for the location.",
+            "example": "+1-555-0123"
+          }
+        }
+      },
+      "Status": {
+        "type": "object",
+        "description": "Represents the status of an API operation.",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "VALID",
+              "success",
+              "error",
+              "CREATED",
+              "UPDATED",
+              "DELETED"
+            ],
+            "example": "VALID"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "READ",
+              "CREATE",
+              "UPDATE",
+              "DELETE"
+            ],
+            "example": "CREATE"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable description of the result.",
+            "example": "User successfully created."
+          }
+        }
+      },
+      "CrudResult": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "data": {
+            "type": "object",
+            "nullable": true
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "HTTP Status Code",
+            "example": 400
+          },
+          "error": {
+            "type": "string",
+            "description": "Description of the error.",
+            "example": "Invalid ID Token"
+          },
+          "trace": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Execution log for debugging."
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/searchUserClient": {
+      "post": {
+        "summary": "Search for a user profile",
+        "description": "Finds a client profile by email. Returns an array even for single matches.",
+        "operationId": "searchUserClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "format": "email"
+                      }
+                    },
+                    "required": [
+                      "email"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Array of matching client profiles.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserClientProfile"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/createUserClient": {
+      "post": {
+        "summary": "Create a new client profile",
+        "description": "Registers a new user client profile in the system.",
+        "operationId": "createUserClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/UserClientProfile"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created client profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getUserClient": {
+      "post": {
+        "summary": "Get a specific user profile",
+        "description": "Retrieves the full profile details for a specific client by ID.",
+        "operationId": "getUserClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The requested client profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserClientProfile"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/updateUserClient": {
+      "post": {
+        "summary": "Update an existing user profile",
+        "description": "Updates partial or full fields of a client profile.",
+        "operationId": "updateUserClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/UserClientProfile"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated client profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/deleteUserClient": {
+      "post": {
+        "summary": "Delete a client profile",
+        "description": "Removes a client record from the system.",
+        "operationId": "deleteUserClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status of the deletion.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/createVehicle": {
+      "post": {
+        "summary": "Register a new vehicle",
+        "description": "Links a new vehicle to the authenticated client's account.",
+        "operationId": "createVehicle",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/Vehicle"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created vehicle record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/listVehicles": {
+      "post": {
+        "summary": "List all vehicles for a user",
+        "description": "Retrieves a list of all vehicles registered under the authenticated client.",
+        "operationId": "listVehicles",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Array of vehicle records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Vehicle"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/createTicket": {
+      "post": {
+        "summary": "Create a new valet ticket",
+        "description": "Initiates a valet session for a specific vehicle at a location.",
+        "operationId": "createTicket",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "vehicle_id": {
+                        "type": "string"
+                      },
+                      "location_id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "vehicle_id",
+                      "location_id"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status of the ticket creation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generatePINandticket": {
+      "post": {
+        "summary": "Create ticket and generate PIN",
+        "description": "Primary entry point for valet service. Creates a ticket and returns a 6-digit PIN.",
+        "operationId": "generatePINandticket",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string"
+                      },
+                      "vehicle": {
+                        "type": "string",
+                        "description": "Vehicle ID"
+                      },
+                      "location": {
+                        "type": "string",
+                        "description": "Location ID"
+                      },
+                      "notes": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated PIN for the valet session.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pin": {
+                      "type": "string",
+                      "example": "123456"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getLatestTicket": {
+      "post": {
+        "summary": "Fetch most recent active ticket",
+        "description": "Retrieves the current active valet ticket for the authenticated user.",
+        "operationId": "getLatestTicket",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The latest ticket record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ticket"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getTicketList": {
+      "post": {
+        "summary": "Get list of client's tickets",
+        "description": "Retrieves a history of past and active tickets for the user.",
+        "operationId": "getTicketList",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Array of tickets.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Ticket"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getTicketByPIN": {
+      "post": {
+        "summary": "Retrieve ticket details using PIN",
+        "description": "Fetches ticket information using the generated security PIN.",
+        "operationId": "getTicketByPIN",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "pin": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "pin"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The requested ticket record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ticket"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setToDeparture": {
+      "post": {
+        "summary": "Signal valet for vehicle departure",
+        "description": "Notifies the valet that the client is ready to pick up their car.",
+        "operationId": "setToDeparture",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "ticketId": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "ticketId"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated ticket record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getLocations": {
+      "post": {
+        "summary": "Fetch available valet locations",
+        "description": "Retrieves all active valet service sites. Returns a raw array of location objects.",
+        "operationId": "getLocations",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Array of valet locations.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ValetLocation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/confirmPayment": {
+      "post": {
+        "summary": "Confirm a Stripe payment intent",
+        "description": "Finalizes a payment transaction in the valet system.",
+        "operationId": "confirmPayment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "paymentIntentId": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "paymentIntentId"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setTicketTip": {
+      "post": {
+        "summary": "Add a tip to a completed ticket",
+        "description": "Records a tip amount for a valet session.",
+        "operationId": "setTicketTip",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "ticketId": {
+                        "type": "string"
+                      },
+                      "tip": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "ticketId",
+                      "tip"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated ticket record with tip.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setToCancelForClient": {
+      "post": {
+        "summary": "Cancel a valet service request",
+        "description": "Allows a client to cancel their arrival request.",
+        "operationId": "setToCancelForClient",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "ticketId": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "ticketId"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated ticket record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setTicketStatus": {
+      "post": {
+        "summary": "Update ticket status",
+        "description": "Manually updates the status of a ticket.",
+        "operationId": "setTicketStatus",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "ticketId": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "ticketId",
+                      "status"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated ticket record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/createProvisionalTicket": {
+      "post": {
+        "summary": "Create a temporary provisional ticket",
+        "description": "Used for quick check-ins without a full user account. Generates a temporary PIN.",
+        "operationId": "createProvisionalTicket",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "location_id": {
+                        "type": "string"
+                      },
+                      "vehicle": {
+                        "type": "object"
+                      },
+                      "notes": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "location_id"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Provisional ticket with PIN.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "pin": {
+                      "type": "string"
+                    },
+                    "location_id": {
+                      "type": "string"
+                    },
+                    "vehicle": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/linkUserClientToTicketByProvisionalPIN": {
+      "post": {
+        "summary": "Link provisional ticket to user account",
+        "description": "Associates a previously created provisional ticket with a fully registered client profile.",
+        "operationId": "linkUserClientToTicketByProvisionalPIN",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "pin": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "pin"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status of the linking operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/setToDepartureCasual": {
+      "post": {
+        "summary": "Request departure for casual user",
+        "description": "Allows a user without a full account to request their car using a PIN.",
+        "operationId": "setToDepartureCasual",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "pin": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "pin"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated ticket record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CrudResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "post": {
+        "summary": "Generic data search",
+        "description": "Finds documents for a specific model based on match criteria.",
+        "operationId": "searchData",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "modelName": {
+                        "type": "string",
+                        "example": "Ticket"
+                      },
+                      "searchCriteria": {
+                        "type": "object",
+                        "example": {
+                          "status": "Arrival"
+                        }
+                      }
+                    },
+                    "required": [
+                      "modelName",
+                      "searchCriteria"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Array of matching documents.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/get-enum": {
+      "post": {
+        "summary": "Get available enum values",
+        "description": "Retrieves the valid options for a specific schema property.",
+        "operationId": "getEnumForProperty",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "data": {
+                    "type": "object",
+                    "properties": {
+                      "modelName": {
+                        "type": "string",
+                        "example": "Ticket"
+                      },
+                      "propertyName": {
+                        "type": "string",
+                        "example": "status"
+                      }
+                    },
+                    "required": [
+                      "modelName",
+                      "propertyName"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Array of valid enum strings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

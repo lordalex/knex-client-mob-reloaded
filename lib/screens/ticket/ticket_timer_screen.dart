@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,7 +66,6 @@ class _TicketTimerScreenState extends ConsumerState<TicketTimerScreen> {
     try {
       final response = await ref.read(apiClientProvider).post<Ticket>(
         Endpoints.getLatestTicket,
-        data: {'userClientId': profile!.id},
         fromData: (json) => Ticket.fromJson(json as Map<String, dynamic>),
       );
 
@@ -87,8 +85,8 @@ class _TicketTimerScreenState extends ConsumerState<TicketTimerScreen> {
           context.go('/home');
         }
       }
-    } catch (e) {
-      developer.log('Timer poll error: $e', name: 'TicketTimerScreen');
+    } catch (_) {
+      // Silent — polling errors are non-fatal
     }
   }
 

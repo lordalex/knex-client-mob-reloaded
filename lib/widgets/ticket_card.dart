@@ -292,10 +292,11 @@ class TicketCard extends StatelessWidget {
 
   Color _statusColor(String status) {
     return switch (status) {
-      Ticket.statusPending => Colors.amber.shade700,
-      Ticket.statusAccepted => Colors.blue,
-      'Arrived' => Colors.blue,
-      Ticket.statusInProgress => Colors.orange,
+      Ticket.statusArrival => Colors.amber.shade700,
+      Ticket.statusProcessingArrival => Colors.blue,
+      Ticket.statusParked => Colors.teal,
+      Ticket.statusDeparture => Colors.orange,
+      Ticket.statusProcessingDeparture => Colors.deepOrange,
       Ticket.statusCompleted => Colors.green,
       Ticket.statusCancelled => Colors.grey,
       _ => Colors.blue,
@@ -304,10 +305,11 @@ class TicketCard extends StatelessWidget {
 
   String _statusLabel(String status) {
     return switch (status) {
-      Ticket.statusPending => 'Waiting for Valet',
-      Ticket.statusAccepted => 'Valet Accepted',
-      'Arrived' => 'Arrived',
-      Ticket.statusInProgress => 'In Progress',
+      Ticket.statusArrival => 'Arriving',
+      Ticket.statusProcessingArrival => 'Processing Arrival',
+      Ticket.statusParked => 'Parked',
+      Ticket.statusDeparture => 'Departing',
+      Ticket.statusProcessingDeparture => 'Bringing Your Car',
       Ticket.statusCompleted => 'Completed',
       Ticket.statusCancelled => 'Cancelled',
       _ => status,

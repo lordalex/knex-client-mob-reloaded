@@ -30,10 +30,12 @@ class Ticket {
     this.updatedAt,
   });
 
-  /// Known ticket status values.
-  static const String statusPending = 'Pending';
-  static const String statusAccepted = 'Accepted';
-  static const String statusInProgress = 'InProgress';
+  /// Known ticket status values (from /get-enum Ticket.status).
+  static const String statusArrival = 'Arrival';
+  static const String statusProcessingArrival = 'Processing-Arrival';
+  static const String statusParked = 'Parked';
+  static const String statusDeparture = 'Departure';
+  static const String statusProcessingDeparture = 'Processing-Departure';
   static const String statusCompleted = 'Completed';
   static const String statusCancelled = 'Cancelled';
 
@@ -41,15 +43,21 @@ class Ticket {
   bool get isActive =>
       status != statusCompleted && status != statusCancelled;
 
-  /// Creates a [Ticket] from a JSON map with snake_case keys.
+  /// Creates a [Ticket] from a JSON map.
+  ///
+  /// Handles both key variants from the API:
+  /// - `user_client_id` / `user_client` for the client reference
+  /// - `vehicle_id` / `vehicle` for the vehicle reference
+  /// - `location_id` / `location` for the location reference
+  /// - Firestore timestamps `{_seconds, _nanoseconds}` and ISO strings
   factory Ticket.fromJson(Map<String, dynamic> json) {
     return Ticket(
       id: json['id'] as String?,
       ticketNumber: json['ticket_number'] as String?,
-      userClientId: (json['user_client_id'] as String?) ?? '',
-      vehicleId: (json['vehicle_id'] as String?) ?? '',
+      userClientId: (json['user_client_id'] ?? json['user_client'] ?? '') as String,
+      vehicleId: (json['vehicle_id'] ?? json['vehicle'] ?? '') as String,
       status: (json['status'] as String?) ?? '',
-      locationId: (json['location_id'] as String?) ?? '',
+      locationId: (json['location_id'] ?? json['location'] ?? '') as String,
       notes: json['notes'] as String?,
       pin: json['pin'] as String?,
       tip: _parseDouble(json['tip']),
@@ -117,6 +125,13 @@ class Ticket {
     if (value is DateTime) return value;
     if (value is String) return DateTime.tryParse(value);
     if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+    // Firestore Timestamp format: { _seconds: int, _nanoseconds: int }
+    if (value is Map) {
+      final seconds = value['_seconds'] ?? value['seconds'];
+      if (seconds is int) {
+        return DateTime.fromMillisecondsSinceEpoch(seconds * 1000);
+      }
+    }
     return null;
   }
 

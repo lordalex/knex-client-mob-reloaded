@@ -55,4 +55,10 @@ class Endpoints {
   // Payment
   // ---------------------------------------------------------------------------
   static const String confirmPayment = '/confirmPayment';
+
+  // ---------------------------------------------------------------------------
+  // Search & Enum
+  // ---------------------------------------------------------------------------
+  static const String search = '/search';
+  static const String getEnum = '/get-enum';
 }

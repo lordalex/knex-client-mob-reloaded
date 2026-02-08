@@ -49,15 +49,21 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
     try {
       final response = await ref.read(apiClientProvider).post<List<Ticket>>(
-        Endpoints.getTicketList,
-        data: {'userClientId': profile!.id},
+        Endpoints.search,
+        data: {
+          'modelName': 'Ticket',
+          'searchCriteria': {'user_client': profile!.id},
+        },
         fromData: (json) {
-          if (json is List) {
-            return json
-                .map((e) => Ticket.fromJson(e as Map<String, dynamic>))
-                .toList();
-          }
-          return <Ticket>[];
+          // /search returns { results: [...] }
+          final list = json is Map
+              ? (json['results'] as List?) ?? []
+              : json is List
+                  ? json
+                  : [];
+          return list
+              .map((e) => Ticket.fromJson(e as Map<String, dynamic>))
+              .toList();
         },
       );
 
