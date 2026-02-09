@@ -30,18 +30,41 @@ class TicketScreen extends ConsumerStatefulWidget {
 
 class _TicketScreenState extends ConsumerState<TicketScreen> {
   Timer? _pollTimer;
+  Timer? _pinTimer;
+  Timer? _pinCountdownTimer;
   bool _isCancelling = false;
   bool _isRequestingDeparture = false;
+  int _pinSecondsLeft = 30;
+  static const int _pinIntervalSeconds = 30;
 
   @override
   void initState() {
     super.initState();
     _startPolling();
+    // Call immediately, then every 30s
+    _pollPIN();
+    _pinTimer = Timer.periodic(
+      const Duration(seconds: _pinIntervalSeconds),
+      (_) => _pollPIN(),
+    );
+    // 1s countdown for the pie
+    _pinCountdownTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) {
+        if (mounted) {
+          setState(() {
+            _pinSecondsLeft = (_pinSecondsLeft - 1).clamp(0, _pinIntervalSeconds);
+          });
+        }
+      },
+    );
   }
 
   @override
   void dispose() {
     _pollTimer?.cancel();
+    _pinTimer?.cancel();
+    _pinCountdownTimer?.cancel();
     super.dispose();
   }
 
@@ -60,7 +83,8 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
       final response = await ref.read(apiClientProvider).post<Ticket>(
         Endpoints.getLatestTicket,
         fromData: (json) {
-          final raw = json is List ? json.first : json;
+          final raw = json is List ? (json.isEmpty ? null : json.first) : json;
+          if (raw == null) throw Exception('Empty ticket list');
           return Ticket.fromJson(raw as Map<String, dynamic>);
         },
       );
@@ -68,23 +92,86 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
       if (!mounted) return;
 
       if (response.isSuccess && response.data != null) {
-        final ticket = response.data!;
-        ref.read(activeTicketProvider.notifier).state = ticket;
+        final polled = response.data!;
+        final current = ref.read(activeTicketProvider);
+        print('[TicketScreen] Poll result: id=${polled.id}, status=${polled.status}');
+        print('[TicketScreen] Current ticket: id=${current?.id}, status=${current?.status}');
 
-        if (ticket.status == Ticket.statusDeparture ||
-            ticket.status == Ticket.statusProcessingDeparture) {
+        // Guard: don't let an old/cancelled polled ticket overwrite a fresh local one.
+        // - If current has no ID (locally built), only accept active polled tickets
+        // - If current has an ID, only accept polled tickets with the same ID
+        if (current?.id == null && !polled.isActive) {
+          print('[TicketScreen] Ignoring polled ticket — not active, current is local');
+          return;
+        }
+        if (current?.id != null && polled.id != null && current!.id != polled.id) {
+          print('[TicketScreen] Ignoring polled ticket — different ID');
+          return;
+        }
+
+        ref.read(activeTicketProvider.notifier).state = polled;
+
+        if (polled.status == Ticket.statusDeparture ||
+            polled.status == Ticket.statusProcessingDeparture) {
           _pollTimer?.cancel();
+          _pinTimer?.cancel();
           context.go('/ticketTimer');
-        } else if (ticket.status == Ticket.statusCompleted) {
+        } else if (polled.status == Ticket.statusCompleted) {
           _pollTimer?.cancel();
+          _pinTimer?.cancel();
           context.go('/ticketCompleted');
-        } else if (ticket.status == Ticket.statusCancelled) {
+        } else if (polled.status == Ticket.statusCancelled) {
           _pollTimer?.cancel();
+          _pinTimer?.cancel();
           context.go('/home');
         }
       }
     } catch (_) {
       // Silent — polling errors are non-fatal
+    }
+  }
+
+  Future<void> _pollPIN() async {
+    final ticket = ref.read(activeTicketProvider);
+    final profile = ref.read(userProfileProvider);
+    if (ticket == null || profile == null) return;
+
+    print('[TicketScreen] ========== POLL generatePINandticket ==========');
+    print('[TicketScreen] Sending: email=${profile.email}, vehicle=${ticket.vehicleId}, location=${ticket.locationId}');
+
+    try {
+      final response = await ref.read(apiClientProvider).post<Map<String, dynamic>>(
+        Endpoints.generatePINandTicket,
+        data: {
+          'email': profile.email,
+          'vehicle': ticket.vehicleId,
+          'location': ticket.locationId,
+        },
+        fromData: (json) {
+          print('[TicketScreen] generatePINandticket raw type: ${json.runtimeType}');
+          print('[TicketScreen] generatePINandticket raw response: $json');
+          if (json is Map<String, dynamic>) return json;
+          if (json is Map) return Map<String, dynamic>.from(json);
+          return <String, dynamic>{'raw': json};
+        },
+      );
+
+      if (!mounted) return;
+
+      print('[TicketScreen] generatePINandticket — isSuccess: ${response.isSuccess}, '
+          'data: ${response.data}, message: ${response.message}');
+
+      if (response.isSuccess && response.data != null) {
+        final pin = response.data!['pin']?.toString();
+        print('[TicketScreen] PIN received: $pin');
+        if (pin != null && pin.isNotEmpty) {
+          final updated = ticket.copyWith(pin: pin);
+          ref.read(activeTicketProvider.notifier).state = updated;
+          if (mounted) setState(() => _pinSecondsLeft = _pinIntervalSeconds);
+        }
+      }
+    } catch (e) {
+      print('[TicketScreen] generatePINandticket error: $e');
     }
   }
 
@@ -148,6 +235,7 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
       if (!mounted) return;
 
       _pollTimer?.cancel();
+      _pinTimer?.cancel();
       ref.read(activeTicketProvider.notifier).state = null;
       context.go('/home');
     } catch (e) {
@@ -219,7 +307,35 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
                         duration: 500.ms,
                         curve: Curves.easeOutCubic,
                       ).fadeIn(duration: 400.ms),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 16),
+
+                      // PIN refresh countdown pie
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              value: 1.0 - (_pinSecondsLeft / _pinIntervalSeconds),
+                              strokeWidth: 2.5,
+                              backgroundColor: Colors.white.withValues(alpha: 0.15),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white.withValues(alpha: 0.6),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'PIN refreshes in ${_pinSecondsLeft}s',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
 
                       // Action buttons
                       if (ticket.status == Ticket.statusArrival ||

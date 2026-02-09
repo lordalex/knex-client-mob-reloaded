@@ -131,7 +131,11 @@ final flowManagerProvider = FutureProvider.autoDispose<String>((ref) async {
   try {
     final ticketResponse = await apiClient.post<Ticket>(
       Endpoints.getLatestTicket,
-      fromData: (json) => Ticket.fromJson(json as Map<String, dynamic>),
+      fromData: (json) {
+        final raw = json is List ? (json.isEmpty ? null : json.first) : json;
+        if (raw == null) throw Exception('Empty ticket list');
+        return Ticket.fromJson(raw as Map<String, dynamic>);
+      },
     );
 
     if (ticketResponse.isSuccess && ticketResponse.data != null) {

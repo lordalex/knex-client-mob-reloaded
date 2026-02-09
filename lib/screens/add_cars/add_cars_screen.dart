@@ -203,7 +203,7 @@ class _AddCarsScreenState extends ConsumerState<AddCarsScreen> {
         userClientId: profile.id ?? '',
         vehicleId: createdVehicle.id ?? '',
         locationId: widget.siteId,
-        status: 'Arrived',
+        status: Ticket.statusArrival,
         notes: _notesController.text.trim().isNotEmpty
             ? _notesController.text.trim()
             : null,
