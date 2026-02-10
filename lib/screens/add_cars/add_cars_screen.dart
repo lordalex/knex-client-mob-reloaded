@@ -159,59 +159,81 @@ class _AddCarsScreenState extends ConsumerState<AddCarsScreen> {
         ));
       }
 
-      // 3. Generate PIN and ticket
-      final ticketData = {
+      // 3. Create ticket
+      final createTicketData = {
+        'user_client': profile.id,
         'email': profile.email,
         'vehicle': createdVehicle.id ?? '',
         'location': widget.siteId,
         if (_notesController.text.trim().isNotEmpty)
           'notes': _notesController.text.trim(),
       };
-      print('[AddCars] ========== GENERATE PIN & TICKET ==========');
-      print('[AddCars] Endpoint: ${Endpoints.generatePINandTicket}');
-      print('[AddCars] Payload: $ticketData');
+      print('[AddCars] ========== CREATE TICKET ==========');
+      print('[AddCars] Endpoint: ${Endpoints.createTicket}');
+      print('[AddCars] Payload: $createTicketData');
 
-      final pinResponse = await apiClient.post<String>(
-        Endpoints.generatePINandTicket,
-        data: ticketData,
+      final ticketResponse = await apiClient.post<Ticket>(
+        Endpoints.createTicket,
+        data: createTicketData,
         fromData: (json) {
-          print('[AddCars] PIN raw response: $json');
-          if (json is Map<String, dynamic>) {
-            return json['pin'] as String? ?? '';
-          }
-          return json.toString();
+          print('[AddCars] createTicket raw response: $json');
+          final raw = json is List ? (json.isEmpty ? null : json.first) : json;
+          if (raw == null) throw Exception('Empty ticket response');
+          return Ticket.fromJson(raw as Map<String, dynamic>);
         },
       );
 
       if (!mounted) return;
 
-      print('[AddCars] PIN response — isSuccess: ${pinResponse.isSuccess}, '
-          'pin: ${pinResponse.data}, message: ${pinResponse.message}');
+      print('[AddCars] Ticket response — isSuccess: ${ticketResponse.isSuccess}, '
+          'hasData: ${ticketResponse.data != null}, message: ${ticketResponse.message}');
 
-      final pin = pinResponse.data ?? '';
-      if (pin.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to generate ticket PIN.')),
-          );
-        }
+      if (ticketResponse.isError || ticketResponse.data == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(ticketResponse.message ?? 'Failed to create ticket.'),
+          ),
+        );
         return;
       }
 
-      final ticket = Ticket(
-        pin: pin,
-        userClientId: profile.id ?? '',
-        vehicleId: createdVehicle.id ?? '',
-        locationId: widget.siteId,
-        status: Ticket.statusArrival,
-        notes: _notesController.text.trim().isNotEmpty
-            ? _notesController.text.trim()
-            : null,
-      );
+      var ticket = ticketResponse.data!;
+      print('[AddCars] Created ticket: id=${ticket.id}, '
+          'status=${ticket.status}, pin=${ticket.pin}');
 
-      print('[AddCars] Built ticket from known data: '
-          'pin=$pin, vehicleId=${ticket.vehicleId}, '
-          'locationId=${ticket.locationId}, status=${ticket.status}');
+      // 4. If status is Arrival, generate PIN
+      if (ticket.status == Ticket.statusArrival) {
+        print('[AddCars] ========== GENERATE PIN ==========');
+        print('[AddCars] Endpoint: ${Endpoints.generatePINandTicket}');
+
+        final pinResponse = await apiClient.post<Map<String, dynamic>>(
+          Endpoints.generatePINandTicket,
+          data: {
+            'email': profile.email,
+            'vehicle': createdVehicle.id ?? '',
+            'location': widget.siteId,
+          },
+          fromData: (json) {
+            print('[AddCars] generatePINandticket raw response: $json');
+            if (json is Map<String, dynamic>) return json;
+            if (json is Map) return Map<String, dynamic>.from(json);
+            return <String, dynamic>{'raw': json};
+          },
+        );
+
+        if (!mounted) return;
+
+        print('[AddCars] PIN response — isSuccess: ${pinResponse.isSuccess}, '
+            'data: ${pinResponse.data}, message: ${pinResponse.message}');
+
+        if (pinResponse.isSuccess && pinResponse.data != null) {
+          final pin = pinResponse.data!['pin']?.toString();
+          if (pin != null && pin.isNotEmpty) {
+            ticket = ticket.copyWith(pin: pin);
+            print('[AddCars] PIN assigned: $pin');
+          }
+        }
+      }
 
       if (!mounted) return;
 

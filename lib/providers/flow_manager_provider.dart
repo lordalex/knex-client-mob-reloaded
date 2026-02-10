@@ -73,8 +73,9 @@ final flowManagerProvider = FutureProvider.autoDispose<String>((ref) async {
       data: {'email': currentUser.email},
       fromData: (json) {
         // The API returns data as a list; unwrap to first element.
-        final raw = json is List ? json.first : json;
+        final raw = json is List ? (json.isEmpty ? null : json.first) : json;
         print('[FlowManager] RAW PROFILE JSON: $raw');
+        if (raw == null) throw Exception('Empty profile list');
         return UserClientProfile.fromJson(raw as Map<String, dynamic>);
       },
     );

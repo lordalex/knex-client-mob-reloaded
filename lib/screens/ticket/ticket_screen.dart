@@ -109,7 +109,13 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
           return;
         }
 
-        ref.read(activeTicketProvider.notifier).state = polled;
+        // Preserve the PIN from the current ticket if the polled response
+        // doesn't include one (getLatestTicket often omits the pin field).
+        final preservedPin = (polled.pin == null || polled.pin!.isEmpty)
+            ? current?.pin
+            : polled.pin;
+        ref.read(activeTicketProvider.notifier).state =
+            polled.copyWith(pin: preservedPin);
 
         if (polled.status == Ticket.statusDeparture ||
             polled.status == Ticket.statusProcessingDeparture) {
@@ -165,8 +171,11 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
         final pin = response.data!['pin']?.toString();
         print('[TicketScreen] PIN received: $pin');
         if (pin != null && pin.isNotEmpty) {
-          final updated = ticket.copyWith(pin: pin);
-          ref.read(activeTicketProvider.notifier).state = updated;
+          // Re-read the latest ticket so we don't overwrite status/id
+          // changes that _pollTicket may have written while this was in-flight.
+          final latest = ref.read(activeTicketProvider) ?? ticket;
+          ref.read(activeTicketProvider.notifier).state =
+              latest.copyWith(pin: pin);
           if (mounted) setState(() => _pinSecondsLeft = _pinIntervalSeconds);
         }
       }
