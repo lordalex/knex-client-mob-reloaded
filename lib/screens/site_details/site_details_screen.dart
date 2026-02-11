@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -100,16 +99,19 @@ class SiteDetailsScreen extends ConsumerWidget {
               background: imageUrl != null
                   ? GestureDetector(
                       onTap: () => _showFullScreenPhoto(context, imageUrl),
-                      child: CachedNetworkImage(
-                        imageUrl: imageUrl,
+                      child: Image.network(
+                        imageUrl,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          child: const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) => Container(
                           color: theme.colorScheme.surfaceContainerHighest,
                           child: Icon(
                             Icons.local_parking,
@@ -346,7 +348,7 @@ class SiteDetailsScreen extends ConsumerWidget {
           ),
           backgroundColor: Colors.black,
           body: PhotoView(
-            imageProvider: CachedNetworkImageProvider(imageUrl),
+            imageProvider: NetworkImage(imageUrl),
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 2,
           ),

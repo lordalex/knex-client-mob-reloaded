@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../models/location.dart';
@@ -41,29 +40,34 @@ class LocationCard extends StatelessWidget {
                   width: 80,
                   height: 80,
                   child: imageUrl != null
-                      ? CachedNetworkImage(
-                          imageUrl: imageUrl,
+                      ? Image.network(
+                          imageUrl,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            child: const Center(
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              color: theme.colorScheme.surfaceContainerHighest,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            child: Icon(
-                              Icons.local_parking,
-                              color: theme.colorScheme.onSurfaceVariant,
-                              size: 32,
-                            ),
-                          ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: theme.colorScheme.surfaceContainerHighest,
+                              child: Icon(
+                                Icons.local_parking,
+                                color: theme.colorScheme.onSurfaceVariant,
+                                size: 32,
+                              ),
+                            );
+                          },
                         )
                       : Container(
                           color: theme.colorScheme.surfaceContainerHighest,

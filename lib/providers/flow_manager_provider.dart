@@ -1,5 +1,3 @@
-import 'dart:developer' as dev;
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -72,8 +70,14 @@ final flowManagerProvider = FutureProvider.autoDispose<String>((ref) async {
       Endpoints.searchUserClient,
       data: {'email': currentUser.email},
       fromData: (json) {
-        // The API returns data as a list; unwrap to first element.
-        final raw = json is List ? (json.isEmpty ? null : json.first) : json;
+        // The API returns data in various shapes:
+        // - List: [{profile}]  (direct list)
+        // - Map with inner data list: {data: [{profile}]}
+        dynamic payload = json;
+        if (payload is Map<String, dynamic> && payload.containsKey('data')) {
+          payload = payload['data'];
+        }
+        final raw = payload is List ? (payload.isEmpty ? null : payload.first) : payload;
         print('[FlowManager] RAW PROFILE JSON: $raw');
         if (raw == null) throw Exception('Empty profile list');
         return UserClientProfile.fromJson(raw as Map<String, dynamic>);
@@ -128,20 +132,44 @@ final flowManagerProvider = FutureProvider.autoDispose<String>((ref) async {
   print('[FlowManager] Profile is complete. Stored.');
 
   // 4. Check for active ticket
+  print('[FlowManager] ========== TICKET CHECK ==========');
+  print('[FlowManager] User ID: ${profile.id}');
+  print('[FlowManager] Email: ${currentUser.email}');
   Ticket? activeTicket;
   try {
     final ticketResponse = await apiClient.post<Ticket>(
       Endpoints.getLatestTicket,
       fromData: (json) {
-        final raw = json is List ? (json.isEmpty ? null : json.first) : json;
+        print('[FlowManager] RAW TICKET RESPONSE TYPE: ${json.runtimeType}');
+        print('[FlowManager] RAW TICKET RESPONSE: $json');
+        // Handle {data: [...]} wrapper if present
+        dynamic payload = json;
+        if (payload is Map<String, dynamic> && payload.containsKey('data')) {
+          payload = payload['data'];
+        }
+        final raw = payload is List ? (payload.isEmpty ? null : payload.first) : payload;
         if (raw == null) throw Exception('Empty ticket list');
+        print('[FlowManager] UNWRAPPED TICKET JSON: $raw');
         return Ticket.fromJson(raw as Map<String, dynamic>);
       },
     );
 
+    print('[FlowManager] Ticket response — status: ${ticketResponse.status}, '
+        'isSuccess: ${ticketResponse.isSuccess}, '
+        'hasData: ${ticketResponse.data != null}, '
+        'message: ${ticketResponse.message}');
+
     if (ticketResponse.isSuccess && ticketResponse.data != null) {
       final ticket = ticketResponse.data!;
-      print('[FlowManager] Latest ticket: status=${ticket.status}');
+      print('[FlowManager] PARSED TICKET:');
+      print('[FlowManager]   id=${ticket.id}');
+      print('[FlowManager]   ticketNumber=${ticket.ticketNumber}');
+      print('[FlowManager]   status="${ticket.status}"');
+      print('[FlowManager]   isActive=${ticket.isActive}');
+      print('[FlowManager]   locationId=${ticket.locationId}');
+      print('[FlowManager]   vehicleId=${ticket.vehicleId}');
+      print('[FlowManager]   pin=${ticket.pin}');
+      print('[FlowManager]   createdAt=${ticket.createdAt}');
       if (ticket.isActive) activeTicket = ticket;
     } else {
       print('[FlowManager] No active ticket found');

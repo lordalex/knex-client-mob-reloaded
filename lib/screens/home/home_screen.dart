@@ -86,8 +86,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         data: profile?.id != null ? {'userClientId': profile!.id} : null,
         fromData: (json) {
           print('[HomeScreen] RAW LOCATIONS TYPE: ${json.runtimeType}');
-          if (json is List) {
-            final locations = json
+          // Handle {data: [...]} wrapper if present
+          dynamic payload = json;
+          if (payload is Map<String, dynamic> && payload.containsKey('data')) {
+            payload = payload['data'];
+          }
+          if (payload is List) {
+            final locations = payload
                 .whereType<Map<String, dynamic>>()
                 .map((e) => ValetLocation.fromJson(e))
                 .toList();

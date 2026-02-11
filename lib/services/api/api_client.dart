@@ -87,8 +87,48 @@ class ApiClient {
             'status type=${raw['status']?.runtimeType}, '
             'data type=${raw['data']?.runtimeType}');
 
-        // Some endpoints return a raw Map without the {status, data} envelope.
-        // Detect this and wrap for fromData parsing.
+        // The backend uses two envelope formats:
+        // 1. Legacy: { "status": { "status": "success", ... }, "data": ... }
+        // 2. Current: { "success": true/false, "data": ..., "endpoint": ..., ... }
+        // Detect format 2 and normalize into format 1 for downstream parsing.
+        if (raw.containsKey('success') && raw.containsKey('data') &&
+            !raw.containsKey('status')) {
+          final isSuccess = raw['success'] == true;
+          final innerData = raw['data'];
+          print('[ApiClient] Detected {success, data} envelope on $endpoint: '
+              'success=$isSuccess, innerData type=${innerData?.runtimeType}');
+
+          if (fromData != null && innerData != null) {
+            try {
+              final parsed = fromData(innerData);
+              return ApiResponse<T>(
+                status: ApiStatus(
+                  status: isSuccess ? 'success' : 'error',
+                  result: isSuccess ? 'READ' : 'ERROR',
+                ),
+                data: parsed,
+              );
+            } catch (e) {
+              print('[ApiClient] fromData threw on $endpoint: $e');
+              // If parsing fails (e.g. empty list), return success with no data
+              return ApiResponse<T>(
+                status: ApiStatus(
+                  status: isSuccess ? 'success' : 'error',
+                  result: isSuccess ? 'READ' : 'ERROR',
+                ),
+              );
+            }
+          }
+
+          return ApiResponse<T>(
+            status: ApiStatus(
+              status: isSuccess ? 'success' : 'error',
+              result: isSuccess ? 'READ' : 'ERROR',
+            ),
+          );
+        }
+
+        // Some endpoints return a raw Map without any envelope.
         if (!raw.containsKey('status') && fromData != null) {
           print('[ApiClient] Non-envelope map on $endpoint, treating as raw data');
           try {

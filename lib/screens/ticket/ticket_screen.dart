@@ -83,7 +83,11 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
       final response = await ref.read(apiClientProvider).post<Ticket>(
         Endpoints.getLatestTicket,
         fromData: (json) {
-          final raw = json is List ? (json.isEmpty ? null : json.first) : json;
+          dynamic payload = json;
+          if (payload is Map<String, dynamic> && payload.containsKey('data')) {
+            payload = payload['data'];
+          }
+          final raw = payload is List ? (payload.isEmpty ? null : payload.first) : payload;
           if (raw == null) throw Exception('Empty ticket list');
           return Ticket.fromJson(raw as Map<String, dynamic>);
         },

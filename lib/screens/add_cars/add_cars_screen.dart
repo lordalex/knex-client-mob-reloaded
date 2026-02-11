@@ -7,12 +7,10 @@ import 'package:go_router/go_router.dart';
 import '../../config/asset_paths.dart';
 import '../../config/theme/app_colors.dart';
 import '../../models/my_car.dart';
-import '../../models/ticket.dart';
 import '../../models/vehicle.dart';
 import '../../providers/api_provider.dart';
 import '../../providers/app_state_provider.dart';
 import '../../providers/profile_provider.dart';
-import '../../providers/ticket_provider.dart';
 import '../../services/api/endpoints.dart';
 import '../../utils/us_states.dart';
 
@@ -172,23 +170,17 @@ class _AddCarsScreenState extends ConsumerState<AddCarsScreen> {
       print('[AddCars] Endpoint: ${Endpoints.createTicket}');
       print('[AddCars] Payload: $createTicketData');
 
-      final ticketResponse = await apiClient.post<Ticket>(
+      final ticketResponse = await apiClient.post(
         Endpoints.createTicket,
         data: createTicketData,
-        fromData: (json) {
-          print('[AddCars] createTicket raw response: $json');
-          final raw = json is List ? (json.isEmpty ? null : json.first) : json;
-          if (raw == null) throw Exception('Empty ticket response');
-          return Ticket.fromJson(raw as Map<String, dynamic>);
-        },
       );
 
       if (!mounted) return;
 
       print('[AddCars] Ticket response — isSuccess: ${ticketResponse.isSuccess}, '
-          'hasData: ${ticketResponse.data != null}, message: ${ticketResponse.message}');
+          'message: ${ticketResponse.message}');
 
-      if (ticketResponse.isError || ticketResponse.data == null) {
+      if (ticketResponse.isError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(ticketResponse.message ?? 'Failed to create ticket.'),
@@ -197,48 +189,8 @@ class _AddCarsScreenState extends ConsumerState<AddCarsScreen> {
         return;
       }
 
-      var ticket = ticketResponse.data!;
-      print('[AddCars] Created ticket: id=${ticket.id}, '
-          'status=${ticket.status}, pin=${ticket.pin}');
-
-      // 4. If status is Arrival, generate PIN
-      if (ticket.status == Ticket.statusArrival) {
-        print('[AddCars] ========== GENERATE PIN ==========');
-        print('[AddCars] Endpoint: ${Endpoints.generatePINandTicket}');
-
-        final pinResponse = await apiClient.post<Map<String, dynamic>>(
-          Endpoints.generatePINandTicket,
-          data: {
-            'email': profile.email,
-            'vehicle': createdVehicle.id ?? '',
-            'location': widget.siteId,
-          },
-          fromData: (json) {
-            print('[AddCars] generatePINandticket raw response: $json');
-            if (json is Map<String, dynamic>) return json;
-            if (json is Map) return Map<String, dynamic>.from(json);
-            return <String, dynamic>{'raw': json};
-          },
-        );
-
-        if (!mounted) return;
-
-        print('[AddCars] PIN response — isSuccess: ${pinResponse.isSuccess}, '
-            'data: ${pinResponse.data}, message: ${pinResponse.message}');
-
-        if (pinResponse.isSuccess && pinResponse.data != null) {
-          final pin = pinResponse.data!['pin']?.toString();
-          if (pin != null && pin.isNotEmpty) {
-            ticket = ticket.copyWith(pin: pin);
-            print('[AddCars] PIN assigned: $pin');
-          }
-        }
-      }
-
-      if (!mounted) return;
-
-      ref.read(activeTicketProvider.notifier).state = ticket;
-      context.go('/ticket');
+      // Ticket created — navigate to home and let FlowManager handle the rest
+      context.go('/home');
     } catch (e) {
       developer.log('AddCars submit error: $e', name: 'AddCarsScreen');
       if (mounted) {
