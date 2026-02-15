@@ -70,7 +70,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _loadLocations() async {
-    print('[HomeScreen] _loadLocations called');
+    debugPrint('[HomeScreen] _loadLocations called');
     setState(() {
       _isLoading = true;
       _hasError = false;
@@ -80,12 +80,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final apiClient = ref.read(apiClientProvider);
       final profile = ref.read(userProfileProvider);
 
-      print('[HomeScreen] Fetching locations for profile id: ${profile?.id}');
+      debugPrint('[HomeScreen] Fetching locations for profile id: ${profile?.id}');
       final response = await apiClient.post<List<ValetLocation>>(
         Endpoints.getLocations,
         data: profile?.id != null ? {'userClientId': profile!.id} : null,
         fromData: (json) {
-          print('[HomeScreen] RAW LOCATIONS TYPE: ${json.runtimeType}');
+          debugPrint('[HomeScreen] RAW LOCATIONS TYPE: ${json.runtimeType}');
           // Handle {data: [...]} wrapper if present
           dynamic payload = json;
           if (payload is Map<String, dynamic> && payload.containsKey('data')) {
@@ -96,14 +96,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 .whereType<Map<String, dynamic>>()
                 .map((e) => ValetLocation.fromJson(e))
                 .toList();
-            print('[HomeScreen] Parsed ${locations.length} locations');
+            debugPrint('[HomeScreen] Parsed ${locations.length} locations');
             return locations;
           }
           return <ValetLocation>[];
         },
       );
 
-      print('[HomeScreen] Locations response — status: ${response.status}, '
+      debugPrint('[HomeScreen] Locations response — status: ${response.status}, '
           'isSuccess: ${response.isSuccess}, '
           'hasData: ${response.data != null}, count: ${response.data?.length}, '
           'message: ${response.message}');
@@ -126,7 +126,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // Fetch GPS in the background (don't block UI)
       _fetchGps();
     } catch (e) {
-      print('[HomeScreen] Failed to load locations: $e');
+      debugPrint('[HomeScreen] Failed to load locations: $e');
       if (!mounted) return;
       setState(() {
         _isLoading = false;
@@ -140,12 +140,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     try {
       final locationService = LocationService();
       final gpsResult = await locationService.getCurrentLocation();
-      print('[HomeScreen] GPS result: $gpsResult');
+      debugPrint('[HomeScreen] GPS result: $gpsResult');
       if (gpsResult != null && mounted) {
         ref.read(userLocationProvider.notifier).state = gpsResult;
       }
     } catch (e) {
-      print('[HomeScreen] GPS failed (non-fatal): $e');
+      debugPrint('[HomeScreen] GPS failed (non-fatal): $e');
     }
   }
 
@@ -210,7 +210,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.watch(distanceUnitProvider);
     ref.watch(userLocationProvider);
 
-    print('[HomeScreen] build() — isLoading=$_isLoading, hasError=$_hasError');
+    debugPrint('[HomeScreen] build() — isLoading=$_isLoading, hasError=$_hasError');
 
     if (_isLoading) {
       return const Scaffold(body: LoadingIndicator());

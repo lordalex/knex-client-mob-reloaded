@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../config/app_constants.dart';
 import '../../models/api_response.dart';
@@ -83,7 +84,7 @@ class ApiClient {
 
       // The standard envelope is a Map with `status` + `data` keys.
       if (raw is Map<String, dynamic>) {
-        print('[ApiClient] Response on $endpoint: keys=${raw.keys.toList()}, '
+        debugPrint('[ApiClient] Response on $endpoint: keys=${raw.keys.toList()}, '
             'status type=${raw['status']?.runtimeType}, '
             'data type=${raw['data']?.runtimeType}');
 
@@ -95,7 +96,7 @@ class ApiClient {
             !raw.containsKey('status')) {
           final isSuccess = raw['success'] == true;
           final innerData = raw['data'];
-          print('[ApiClient] Detected {success, data} envelope on $endpoint: '
+          debugPrint('[ApiClient] Detected {success, data} envelope on $endpoint: '
               'success=$isSuccess, innerData type=${innerData?.runtimeType}');
 
           if (fromData != null && innerData != null) {
@@ -109,7 +110,7 @@ class ApiClient {
                 data: parsed,
               );
             } catch (e) {
-              print('[ApiClient] fromData threw on $endpoint: $e');
+              debugPrint('[ApiClient] fromData threw on $endpoint: $e');
               // If parsing fails (e.g. empty list), return success with no data
               return ApiResponse<T>(
                 status: ApiStatus(
@@ -130,7 +131,7 @@ class ApiClient {
 
         // Some endpoints return a raw Map without any envelope.
         if (!raw.containsKey('status') && fromData != null) {
-          print('[ApiClient] Non-envelope map on $endpoint, treating as raw data');
+          debugPrint('[ApiClient] Non-envelope map on $endpoint, treating as raw data');
           try {
             final parsed = fromData(raw);
             return ApiResponse<T>(
@@ -147,7 +148,7 @@ class ApiClient {
 
       // Some endpoints return a raw list or other non-envelope format.
       // Wrap it in a synthetic success envelope so fromData can parse it.
-      print('[ApiClient] Non-map response on $endpoint: ${raw.runtimeType}');
+      debugPrint('[ApiClient] Non-map response on $endpoint: ${raw.runtimeType}');
       if (fromData != null) {
         try {
           final parsed = fromData(raw);
@@ -162,7 +163,7 @@ class ApiClient {
 
       return ApiResponse<T>.error('Unexpected response format');
     } on DioException catch (e) {
-      print('[ApiClient] DioException on $endpoint: '
+      debugPrint('[ApiClient] DioException on $endpoint: '
           'type=${e.type}, statusCode=${e.response?.statusCode}, '
           'message=${e.message}, '
           'responseData=${e.response?.data}');
@@ -178,7 +179,7 @@ class ApiClient {
         e.message ?? 'An unexpected network error occurred.',
       );
     } catch (e) {
-      print('[ApiClient] Unexpected error on $endpoint: $e');
+      debugPrint('[ApiClient] Unexpected error on $endpoint: $e');
       return ApiResponse<T>.error('An unexpected error occurred: $e');
     }
   }

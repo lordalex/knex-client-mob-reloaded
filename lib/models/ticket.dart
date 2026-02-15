@@ -13,6 +13,7 @@ class Ticket {
   final String? notes;
   final String? pin;
   final double? tip;
+  final List<String>? photos;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -26,6 +27,7 @@ class Ticket {
     this.notes,
     this.pin,
     this.tip,
+    this.photos,
     this.createdAt,
     this.updatedAt,
   });
@@ -61,6 +63,9 @@ class Ticket {
       notes: json['notes'] as String?,
       pin: json['pin'] as String?,
       tip: _parseDouble(json['tip']),
+      photos: (json['photos'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
       createdAt: _parseDateTime(json['created_at'] ?? json['createdAt']),
       updatedAt: _parseDateTime(json['updated_at'] ?? json['updatedAt']),
     );
@@ -78,6 +83,7 @@ class Ticket {
       if (notes != null) 'notes': notes,
       if (pin != null) 'pin': pin,
       if (tip != null) 'tip': tip,
+      if (photos != null) 'photos': photos,
       if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
     };
@@ -94,6 +100,7 @@ class Ticket {
     String? notes,
     String? pin,
     double? tip,
+    List<String>? photos,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -107,6 +114,7 @@ class Ticket {
       notes: notes ?? this.notes,
       pin: pin ?? this.pin,
       tip: tip ?? this.tip,
+      photos: photos ?? this.photos,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

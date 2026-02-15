@@ -37,6 +37,8 @@ class Endpoints {
   static const String setToCancelForClient = '/setToCancelForClient';
   static const String setTicketTip = '/setTicketTip';
   static const String setTicketStatus = '/setTicketStatus';
+  static const String updateTicket = '/updateTicket';
+  static const String updateTicketPhotos = '/updateTicketPhotos';
 
   // ---------------------------------------------------------------------------
   // Location

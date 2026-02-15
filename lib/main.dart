@@ -43,13 +43,13 @@ void main() async {
 
       // Forward Flutter framework errors to Crashlytics (non-fatal in debug).
       FlutterError.onError = (details) {
-        print('[Crashlytics] Flutter error: ${details.exceptionAsString()}');
+        debugPrint('[Crashlytics] Flutter error: ${details.exceptionAsString()}');
         FirebaseCrashlytics.instance.recordFlutterError(details);
       };
 
       // Forward asynchronous errors to Crashlytics (non-fatal in debug).
       PlatformDispatcher.instance.onError = (error, stack) {
-        print('[Crashlytics] Platform error: $error');
+        debugPrint('[Crashlytics] Platform error: $error');
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: false);
         return true;
       };

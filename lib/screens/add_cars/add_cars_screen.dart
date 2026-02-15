@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import '../../config/asset_paths.dart';
 import '../../config/theme/app_colors.dart';
 import '../../models/my_car.dart';
-import '../../models/vehicle.dart';
 import '../../providers/api_provider.dart';
 import '../../providers/app_state_provider.dart';
 import '../../providers/profile_provider.dart';
@@ -49,6 +48,7 @@ class _AddCarsScreenState extends ConsumerState<AddCarsScreen> {
 
   void _prefillFromSavedCar() {
     final myCar = ref.read(myCarProvider);
+    debugPrint('[AddCars] Prefill from saved car: $myCar');
     if (myCar.isNotEmpty) {
       final make = myCar.make ?? '';
       final model = myCar.model ?? '';
@@ -106,78 +106,76 @@ class _AddCarsScreenState extends ConsumerState<AddCarsScreen> {
       }
 
       final (make, model) = _parseMakeModel();
+      final plate = _plateController.text.trim().toUpperCase();
+      final color = _colorController.text.trim();
 
-      // 1. Create vehicle
-      final vehicle = Vehicle(
-        userClientId: profile!.id,
-        vehicleMake: make,
-        vehicleModel: model,
-        color: _colorController.text.trim(),
-        licensePlate: _plateController.text.trim().toUpperCase(),
-      );
+      // ── Step 1: Create / upsert vehicle ──
+      final vehiclePayload = {
+        'user_client_id': profile!.id,
+        'vehicle_make': make,
+        'vehicle_model': model,
+        'license_plate': plate,
+        'color': color,
+      };
 
-      print('[AddCars] Creating vehicle: ${vehicle.toJson()}');
-      final vehicleResponse = await apiClient.post<Vehicle>(
+      debugPrint('[AddCars] ========== STEP 1: CREATE VEHICLE ==========');
+      debugPrint('[AddCars] Payload: $vehiclePayload');
+
+      final vehicleResponse = await apiClient.post<String>(
         Endpoints.createVehicle,
-        data: vehicle.toJson(),
-        fromData: (json) {
-          final raw = json is List ? json.first : json;
-          print('[AddCars] Vehicle response data: $raw');
-          return Vehicle.fromJson(raw as Map<String, dynamic>);
+        data: vehiclePayload,
+        fromData: (data) {
+          // ApiClient unwraps {success, data} envelope.
+          // fromData receives: {data: {id: "...", ...}, status: {...}}
+          debugPrint('[AddCars] createVehicle fromData received: $data');
+          if (data is Map<String, dynamic>) {
+            final inner = data['data'];
+            if (inner is Map<String, dynamic>) {
+              return inner['id']?.toString() ?? '';
+            }
+            // Fallback: id might be at the top level
+            return data['id']?.toString() ?? '';
+          }
+          return '';
         },
       );
 
       if (!mounted) return;
 
-      print('[AddCars] Vehicle response — isSuccess: ${vehicleResponse.isSuccess}, '
-          'hasData: ${vehicleResponse.data != null}, message: ${vehicleResponse.message}');
+      final vehicleId = vehicleResponse.data ?? '';
+      debugPrint('[AddCars] Vehicle response — isSuccess: ${vehicleResponse.isSuccess}, '
+          'vehicleId: $vehicleId');
 
-      if (vehicleResponse.isError) {
+      if (vehicleResponse.isError || vehicleId.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(vehicleResponse.message ?? 'Failed to create vehicle.'),
           ),
         );
-        setState(() => _isLoading = false);
         return;
       }
 
-      final createdVehicle = vehicleResponse.data ?? vehicle;
-      print('[AddCars] Created vehicle id: ${createdVehicle.id}');
-
-      // 2. Save as default car
-      if (_saveAsDefault) {
-        ref.read(myCarProvider.notifier).setCar(MyCar(
-          make: make,
-          model: model,
-          color: createdVehicle.color,
-          plate: createdVehicle.licensePlate,
-          state: _selectedState,
-          notes: _notesController.text.trim(),
-        ));
-      }
-
-      // 3. Create ticket
-      final createTicketData = {
+      // ── Step 2: Create ticket ──
+      final ticketPayload = {
         'user_client': profile.id,
         'email': profile.email,
-        'vehicle': createdVehicle.id ?? '',
+        'vehicle': vehicleId,
         'location': widget.siteId,
         if (_notesController.text.trim().isNotEmpty)
           'notes': _notesController.text.trim(),
       };
-      print('[AddCars] ========== CREATE TICKET ==========');
-      print('[AddCars] Endpoint: ${Endpoints.createTicket}');
-      print('[AddCars] Payload: $createTicketData');
+
+      debugPrint('[AddCars] ========== STEP 2: CREATE TICKET ==========');
+      debugPrint('[AddCars] Payload: $ticketPayload');
 
       final ticketResponse = await apiClient.post(
         Endpoints.createTicket,
-        data: createTicketData,
+        data: ticketPayload,
       );
 
       if (!mounted) return;
 
-      print('[AddCars] Ticket response — isSuccess: ${ticketResponse.isSuccess}, '
+      debugPrint('[AddCars] Ticket response — isSuccess: ${ticketResponse.isSuccess}, '
           'message: ${ticketResponse.message}');
 
       if (ticketResponse.isError) {
@@ -189,8 +187,20 @@ class _AddCarsScreenState extends ConsumerState<AddCarsScreen> {
         return;
       }
 
-      // Ticket created — navigate to home and let FlowManager handle the rest
-      context.go('/home');
+      // Save as default car
+      if (_saveAsDefault) {
+        ref.read(myCarProvider.notifier).setCar(MyCar(
+          make: make,
+          model: model,
+          color: color,
+          plate: plate,
+          state: _selectedState,
+          notes: _notesController.text.trim(),
+        ));
+      }
+
+      // Ticket created — navigate to ticket screen
+      context.go('/ticket');
     } catch (e) {
       developer.log('AddCars submit error: $e', name: 'AddCarsScreen');
       if (mounted) {

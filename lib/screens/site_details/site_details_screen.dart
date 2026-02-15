@@ -376,7 +376,7 @@ class SiteDetailsScreen extends ConsumerWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              print('[SiteDetails] Navigating to /addCars?id=${location.id}');
+              debugPrint('[SiteDetails] Navigating to /addCars?id=${location.id}');
               parentContext.push('/addCars?id=${location.id}');
             },
             child: const Text('Continue'),

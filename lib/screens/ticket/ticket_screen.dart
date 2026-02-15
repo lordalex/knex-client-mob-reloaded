@@ -98,18 +98,18 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
       if (response.isSuccess && response.data != null) {
         final polled = response.data!;
         final current = ref.read(activeTicketProvider);
-        print('[TicketScreen] Poll result: id=${polled.id}, status=${polled.status}');
-        print('[TicketScreen] Current ticket: id=${current?.id}, status=${current?.status}');
+        debugPrint('[TicketScreen] Poll result: id=${polled.id}, status=${polled.status}');
+        debugPrint('[TicketScreen] Current ticket: id=${current?.id}, status=${current?.status}');
 
         // Guard: don't let an old/cancelled polled ticket overwrite a fresh local one.
         // - If current has no ID (locally built), only accept active polled tickets
         // - If current has an ID, only accept polled tickets with the same ID
         if (current?.id == null && !polled.isActive) {
-          print('[TicketScreen] Ignoring polled ticket — not active, current is local');
+          debugPrint('[TicketScreen] Ignoring polled ticket — not active, current is local');
           return;
         }
         if (current?.id != null && polled.id != null && current!.id != polled.id) {
-          print('[TicketScreen] Ignoring polled ticket — different ID');
+          debugPrint('[TicketScreen] Ignoring polled ticket — different ID');
           return;
         }
 
@@ -120,6 +120,14 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
             : polled.pin;
         ref.read(activeTicketProvider.notifier).state =
             polled.copyWith(pin: preservedPin);
+
+        // Once the attendant has accepted the ticket (status moves past
+        // Arrival), stop regenerating PINs — otherwise generatePINandTicket
+        // would create a brand-new ticket and reset the flow.
+        if (polled.status != Ticket.statusArrival) {
+          _pinTimer?.cancel();
+          _pinCountdownTimer?.cancel();
+        }
 
         if (polled.status == Ticket.statusDeparture ||
             polled.status == Ticket.statusProcessingDeparture) {
@@ -146,8 +154,19 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
     final profile = ref.read(userProfileProvider);
     if (ticket == null || profile == null) return;
 
-    print('[TicketScreen] ========== POLL generatePINandticket ==========');
-    print('[TicketScreen] Sending: email=${profile.email}, vehicle=${ticket.vehicleId}, location=${ticket.locationId}');
+    // Only regenerate PIN while the ticket is still waiting for the attendant.
+    // Once the attendant enters the PIN, status advances past 'Arrival' and
+    // calling generatePINandTicket again would create a NEW ticket, resetting
+    // the flow.
+    if (ticket.status != Ticket.statusArrival) {
+      debugPrint('[TicketScreen] Skipping PIN poll — status is ${ticket.status}, not Arrival');
+      _pinTimer?.cancel();
+      _pinCountdownTimer?.cancel();
+      return;
+    }
+
+    debugPrint('[TicketScreen] ========== POLL generatePINandticket ==========');
+    debugPrint('[TicketScreen] Sending: email=${profile.email}, vehicle=${ticket.vehicleId}, location=${ticket.locationId}');
 
     try {
       final response = await ref.read(apiClientProvider).post<Map<String, dynamic>>(
@@ -158,8 +177,8 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
           'location': ticket.locationId,
         },
         fromData: (json) {
-          print('[TicketScreen] generatePINandticket raw type: ${json.runtimeType}');
-          print('[TicketScreen] generatePINandticket raw response: $json');
+          debugPrint('[TicketScreen] generatePINandticket raw type: ${json.runtimeType}');
+          debugPrint('[TicketScreen] generatePINandticket raw response: $json');
           if (json is Map<String, dynamic>) return json;
           if (json is Map) return Map<String, dynamic>.from(json);
           return <String, dynamic>{'raw': json};
@@ -168,12 +187,12 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
 
       if (!mounted) return;
 
-      print('[TicketScreen] generatePINandticket — isSuccess: ${response.isSuccess}, '
+      debugPrint('[TicketScreen] generatePINandticket — isSuccess: ${response.isSuccess}, '
           'data: ${response.data}, message: ${response.message}');
 
       if (response.isSuccess && response.data != null) {
         final pin = response.data!['pin']?.toString();
-        print('[TicketScreen] PIN received: $pin');
+        debugPrint('[TicketScreen] PIN received: $pin');
         if (pin != null && pin.isNotEmpty) {
           // Re-read the latest ticket so we don't overwrite status/id
           // changes that _pollTicket may have written while this was in-flight.
@@ -184,7 +203,7 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
         }
       }
     } catch (e) {
-      print('[TicketScreen] generatePINandticket error: $e');
+      debugPrint('[TicketScreen] generatePINandticket error: $e');
     }
   }
 
@@ -283,12 +302,12 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
           child: Column(
             children: [
               // Title bar
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
                 child: Row(
                   children: [
-                    const SizedBox(width: 48),
-                    const Expanded(
+                    SizedBox(width: 48),
+                    Expanded(
                       child: Text(
                         'Your Ticket',
                         textAlign: TextAlign.center,
@@ -299,7 +318,7 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 48),
+                    SizedBox(width: 48),
                   ],
                 ),
               ),
