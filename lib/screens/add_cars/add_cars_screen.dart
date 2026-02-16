@@ -7,9 +7,11 @@ import 'package:go_router/go_router.dart';
 import '../../config/asset_paths.dart';
 import '../../config/theme/app_colors.dart';
 import '../../models/my_car.dart';
+import '../../models/ticket.dart';
 import '../../providers/api_provider.dart';
 import '../../providers/app_state_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../providers/ticket_provider.dart';
 import '../../services/api/endpoints.dart';
 import '../../utils/us_states.dart';
 
@@ -198,6 +200,16 @@ class _AddCarsScreenState extends ConsumerState<AddCarsScreen> {
           notes: _notesController.text.trim(),
         ));
       }
+
+      // Seed activeTicketProvider so TicketScreen can request the PIN
+      // immediately instead of waiting for the first poll cycle.
+      ref.read(activeTicketProvider.notifier).state = Ticket(
+        userClientId: profile.id!,
+        vehicleId: vehicleId,
+        status: Ticket.statusArrival,
+        locationId: widget.siteId,
+        createdAt: DateTime.now(),
+      );
 
       // Ticket created — navigate to ticket screen
       context.go('/ticket');

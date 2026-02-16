@@ -41,6 +41,8 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
   void initState() {
     super.initState();
     _startPolling();
+    // Fetch the full ticket immediately so we have ID / ticket number
+    _pollTicket();
     // Call immediately, then every 30s
     _pollPIN();
     _pinTimer = Timer.periodic(
