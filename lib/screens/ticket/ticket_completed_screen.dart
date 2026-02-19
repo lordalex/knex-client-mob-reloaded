@@ -90,7 +90,7 @@ class TicketCompletedScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       if (ticket.ticketNumber != null)
-                        _infoRow('Ticket #', ticket.ticketNumber!),
+                        _infoRow('Ticket #', _shortId(ticket.ticketNumber!)),
                       _infoRow('Status', 'Completed'),
                       if (ticket.createdAt != null)
                         _infoRow('Started', _formatDateTime(ticket.createdAt!)),
@@ -194,17 +194,28 @@ class TicketCompletedScreen extends ConsumerWidget {
               fontSize: 14,
             ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              color: AppColors.light.secondary,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: AppColors.light.secondary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// Truncates long IDs (UUIDs) to last 8 chars with ellipsis prefix.
+  String _shortId(String id) {
+    if (id.length <= 12) return id;
+    return '...${id.substring(id.length - 8)}';
   }
 
   String _formatDateTime(DateTime dt) {

@@ -36,8 +36,10 @@ class Ticket {
   static const String statusArrival = 'Arrival';
   static const String statusProcessingArrival = 'Processing-Arrival';
   static const String statusParked = 'Parked';
+  static const String statusProcessing = 'Processing';
   static const String statusDeparture = 'Departure';
   static const String statusProcessingDeparture = 'Processing-Departure';
+  static const String statusDeparted = 'Departed';
   static const String statusCompleted = 'Completed';
   static const String statusCancelled = 'Cancelled';
 
@@ -54,14 +56,14 @@ class Ticket {
   /// - Firestore timestamps `{_seconds, _nanoseconds}` and ISO strings
   factory Ticket.fromJson(Map<String, dynamic> json) {
     return Ticket(
-      id: json['id'] as String?,
-      ticketNumber: json['ticket_number'] as String?,
+      id: json['id']?.toString(),
+      ticketNumber: json['ticket_number']?.toString(),
       userClientId: (json['user_client_id'] ?? json['user_client'] ?? '') as String,
       vehicleId: (json['vehicle_id'] ?? json['vehicle'] ?? '') as String,
       status: (json['status'] as String?) ?? '',
       locationId: (json['location_id'] ?? json['location'] ?? '') as String,
-      notes: json['notes'] as String?,
-      pin: json['pin'] as String?,
+      notes: json['notes']?.toString(),
+      pin: json['pin']?.toString(),
       tip: _parseDouble(json['tip']),
       photos: (json['photos'] as List<dynamic>?)
           ?.map((e) => e.toString())

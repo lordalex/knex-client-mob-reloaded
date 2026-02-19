@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../config/app_constants.dart';
@@ -11,6 +12,9 @@ import 'api_interceptors.dart';
 /// request payloads with the current Firebase JWT token. Errors are normalized
 /// by [ErrorInterceptor] and requests are logged in debug mode by
 /// [LoggingInterceptor].
+///
+/// On 401 responses the [AuthInterceptor] will force-refresh the Firebase JWT
+/// token and retry the request once before propagating the error.
 ///
 /// Usage:
 /// ```dart
@@ -41,10 +45,23 @@ class ApiClient {
     );
 
     _dio.interceptors.addAll([
-      AuthInterceptor(tokenGetter: () => _authToken),
+      AuthInterceptor(
+        tokenGetter: () => _authToken,
+        tokenRefresher: _refreshFirebaseToken,
+        tokenSetter: (token) => _authToken = token,
+      ),
       ErrorInterceptor(),
       LoggingInterceptor(),
     ]);
+  }
+
+  /// Force-refreshes the Firebase ID token.
+  ///
+  /// Returns the new JWT string or null if the user is signed out.
+  Future<String?> _refreshFirebaseToken() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+    return user.getIdToken(true); // true = force refresh
   }
 
   /// Updates the auth token used for subsequent requests.

@@ -191,6 +191,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return double.tryParse(distStr.split(' ').first) ?? 0;
   }
 
+  String _greeting() {
+    final profile = ref.read(userProfileProvider);
+    final name = profile?.firstName;
+    if (name != null && name.isNotEmpty) {
+      return 'Hey $name!';
+    }
+    return 'Request valet?';
+  }
+
   String _getDistance(ValetLocation loc) {
     final userLoc = ref.read(userLocationProvider);
     final unit = ref.read(distanceUnitProvider) == 'imperial' ? 'mi' : 'km';
@@ -199,7 +208,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final lat = loc.latitude ?? AppConstants.defaultLatitude;
     final lng = loc.longitude ?? AppConstants.defaultLongitude;
-    return calculateDistance(userLoc.$1, userLoc.$2, lat, lng, unit);
+    final dist = calculateDistance(userLoc.$1, userLoc.$2, lat, lng, unit);
+    // Show "Nearby" for very small distances instead of "0.0 mi"
+    final value = double.tryParse(dist.split(' ').first) ?? 0;
+    if (value < 0.1) return 'Nearby';
+    return dist;
   }
 
   @override
@@ -252,12 +265,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       right: 20,
                       bottom: 16,
                     ),
-                    child: Text(
-                      'Request valet?',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _greeting(),
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Find your nearest premium valet',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -280,23 +305,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
 
-              // Section header
+              // Section header + sort chips
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
-                  child: Row(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          'Valet locations available near you',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                      Text(
+                        'Locations near you',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.tune),
-                        onPressed: () => context.push('/listConfig'),
+                      const SizedBox(height: 10),
+                      _SortChips(
+                        currentSort: ref.watch(sortByProvider),
+                        onSort: (value) =>
+                            ref.read(sortByProvider.notifier).state = value,
                       ),
                     ],
                   ),
@@ -412,5 +438,45 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       );
     }).toList();
+  }
+}
+
+class _SortChips extends StatelessWidget {
+  final String currentSort;
+  final ValueChanged<String> onSort;
+
+  const _SortChips({required this.currentSort, required this.onSort});
+
+  @override
+  Widget build(BuildContext context) {
+    const options = [
+      ('distance', 'Nearest', Icons.near_me_outlined),
+      ('price', 'Price', Icons.attach_money),
+      ('name', 'Name', Icons.sort_by_alpha),
+    ];
+
+    return Row(
+      children: options.map((opt) {
+        final isActive = currentSort == opt.$1;
+        return Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: FilterChip(
+            selected: isActive,
+            label: Text(opt.$2),
+            avatar: Icon(opt.$3, size: 16),
+            onSelected: (_) => onSort(opt.$1),
+            showCheckmark: false,
+            selectedColor: AppColors.light.secondary.withValues(alpha: 0.15),
+            labelStyle: TextStyle(
+              fontSize: 12,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+              color: isActive
+                  ? AppColors.light.secondary
+                  : Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+        );
+      }).toList(),
+    );
   }
 }

@@ -33,16 +33,23 @@ final authTokenProvider = StateProvider<String?>((ref) => null);
 /// Synchronizes the Firebase ID token with [authTokenProvider] and [ApiClient].
 ///
 /// Watch this provider from the root widget to keep the token in sync
-/// for the lifetime of the app.
+/// for the lifetime of the app. Uses `getIdToken(false)` which returns
+/// the cached token if still valid — force-refresh is handled by the
+/// [AuthInterceptor] on 401 responses.
 final authTokenSyncProvider = Provider<void>((ref) {
   ref.listen<AsyncValue<User?>>(idTokenStreamProvider, (previous, next) {
     next.when(
       data: (user) async {
         if (user != null) {
-          final token = await user.getIdToken();
-          ref.read(authTokenProvider.notifier).state = token;
-          ref.read(apiClientProvider).setAuthToken(token);
-          developer.log('Auth token synced', name: 'AuthProviders');
+          try {
+            final token = await user.getIdToken();
+            ref.read(authTokenProvider.notifier).state = token;
+            ref.read(apiClientProvider).setAuthToken(token);
+            developer.log('Auth token synced', name: 'AuthProviders');
+          } catch (e) {
+            developer.log('Failed to get ID token: $e',
+                name: 'AuthProviders');
+          }
         } else {
           ref.read(authTokenProvider.notifier).state = null;
           ref.read(apiClientProvider).setAuthToken(null);

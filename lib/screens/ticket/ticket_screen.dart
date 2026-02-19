@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import '../../config/app_constants.dart';
 import '../../config/theme/app_colors.dart';
 import '../../models/ticket.dart';
 import '../../providers/api_provider.dart';
+import '../../providers/app_state_provider.dart';
 import '../../providers/locations_provider.dart';
 import '../../providers/profile_provider.dart';
 import '../../providers/ticket_provider.dart';
@@ -126,13 +128,15 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
         // Once the attendant has accepted the ticket (status moves past
         // Arrival), stop regenerating PINs — otherwise generatePINandTicket
         // would create a brand-new ticket and reset the flow.
-        if (polled.status != Ticket.statusArrival) {
+        if (polled.status != Ticket.statusArrival &&
+            polled.status != Ticket.statusProcessingArrival) {
           _pinTimer?.cancel();
           _pinCountdownTimer?.cancel();
         }
 
-        if (polled.status == Ticket.statusDeparture ||
-            polled.status == Ticket.statusProcessingDeparture) {
+        if (polled.status == Ticket.statusProcessing ||
+            polled.status == Ticket.statusProcessingDeparture ||
+            polled.status == Ticket.statusDeparted) {
           _pollTimer?.cancel();
           _pinTimer?.cancel();
           context.go('/ticketTimer');
@@ -160,8 +164,9 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
     // Once the attendant enters the PIN, status advances past 'Arrival' and
     // calling generatePINandTicket again would create a NEW ticket, resetting
     // the flow.
-    if (ticket.status != Ticket.statusArrival) {
-      debugPrint('[TicketScreen] Skipping PIN poll — status is ${ticket.status}, not Arrival');
+    if (ticket.status != Ticket.statusArrival &&
+        ticket.status != Ticket.statusProcessingArrival) {
+      debugPrint('[TicketScreen] Skipping PIN poll — status is ${ticket.status}');
       _pinTimer?.cancel();
       _pinCountdownTimer?.cancel();
       return;
@@ -215,19 +220,25 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
 
     setState(() => _isRequestingDeparture = true);
     try {
-      final response = await ref.read(apiClientProvider).post<Ticket>(
-        Endpoints.setToDeparture,
-        data: {'id': ticket.id},
-        fromData: (json) => Ticket.fromJson(json as Map<String, dynamic>),
+      final response = await ref.read(apiClientProvider).post<Map<String, dynamic>>(
+        Endpoints.setTicketStatus,
+        data: {'id': ticket.id, 'status': Ticket.statusDeparture},
+        fromData: (json) {
+          if (json is Map<String, dynamic>) return json;
+          if (json is Map) return Map<String, dynamic>.from(json);
+          return <String, dynamic>{'raw': json};
+        },
       );
 
       if (!mounted) return;
 
-      if (response.isSuccess && response.data != null) {
-        ref.read(activeTicketProvider.notifier).state = response.data;
+      if (response.isSuccess) {
+        // Update local ticket status immediately, poll will confirm
+        ref.read(activeTicketProvider.notifier).state =
+            ticket.copyWith(status: Ticket.statusDeparture);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.message ?? 'Failed to request departure.')),
+          SnackBar(content: Text(response.message ?? 'Failed to request pick up.')),
         );
       }
     } catch (e) {
@@ -295,6 +306,9 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
     final locations = ref.watch(locationsProvider);
     final location = locations.where((l) => l.id == ticket.locationId).firstOrNull;
 
+    // Get saved vehicle info
+    final myCar = ref.watch(myCarProvider);
+
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
@@ -324,7 +338,11 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
+
+              // Status stepper
+              _StatusStepper(currentStatus: ticket.status),
+              const SizedBox(height: 16),
 
               // Ticket card with slide-up animation
               Expanded(
@@ -336,6 +354,8 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
                         ticket: ticket,
                         locationName: location?.name,
                         locationAddress: location?.address,
+                        showPin: ticket.status == Ticket.statusProcessingArrival,
+                        vehicle: myCar.isNotEmpty ? myCar : null,
                       ).animate().slideY(
                         begin: 0.15,
                         duration: 500.ms,
@@ -343,76 +363,39 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
                       ).fadeIn(duration: 400.ms),
                       const SizedBox(height: 16),
 
-                      // PIN refresh countdown pie
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              value: 1.0 - (_pinSecondsLeft / _pinIntervalSeconds),
-                              strokeWidth: 2.5,
-                              backgroundColor: Colors.white.withValues(alpha: 0.15),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white.withValues(alpha: 0.6),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'PIN refreshes in ${_pinSecondsLeft}s',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.5),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Action buttons
+                      // PIN refresh countdown — during Arrival and Processing-Arrival
                       if (ticket.status == Ticket.statusArrival ||
-                          ticket.status == Ticket.statusProcessingArrival ||
-                          ticket.status == Ticket.statusParked) ...[
-                        // Request Pick Up button
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: ElevatedButton.icon(
-                              onPressed: _isRequestingDeparture
-                                  ? null
-                                  : _requestDeparture,
-                              icon: _isRequestingDeparture
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Icon(Icons.chevron_right),
-                              label: Text(
-                                _isRequestingDeparture
-                                    ? 'Requesting...'
-                                    : 'Request Pick Up',
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.light.secondary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                          ticket.status == Ticket.statusProcessingArrival) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                value: 1.0 - (_pinSecondsLeft / _pinIntervalSeconds),
+                                strokeWidth: 2.5,
+                                backgroundColor: Colors.white.withValues(alpha: 0.15),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white.withValues(alpha: 0.6),
                                 ),
                               ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'PIN refreshes in ${_pinSecondsLeft}s',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.5),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 12),
+                      ],
 
-                        // Cancel button
+                      // Cancel button — only during Arrival
+                      if (ticket.status == Ticket.statusArrival) ...[
+                        const SizedBox(height: 20),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
                           child: SizedBox(
@@ -444,6 +427,108 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
                           ),
                         ),
                       ],
+
+                      // Processing Arrival — valet is parking the car
+                      if (ticket.status == Ticket.statusProcessingArrival) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Your valet is parking your car...',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+
+                      // Request Pick Up — only when Parked (long press to confirm)
+                      if (ticket.status == Ticket.statusParked) ...[
+                        const SizedBox(height: 20),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: _isRequestingDeparture
+                                ? ElevatedButton.icon(
+                                    onPressed: null,
+                                    icon: const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    label: const Text('Requesting...'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.light.secondary,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  )
+                                : GestureDetector(
+                                    onLongPress: () {
+                                      HapticFeedback.heavyImpact();
+                                      _requestDeparture();
+                                    },
+                                    child: Container(
+                                      height: 52,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.light.secondary,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.chevron_right, color: Colors.white),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            'Hold to Request Pick Up',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ],
+
+                      // Departure — waiting for attendant to confirm
+                      if (ticket.status == Ticket.statusDeparture) ...[
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Waiting for your valet...',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Your pick up request has been sent',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -452,6 +537,129 @@ class _TicketScreenState extends ConsumerState<TicketScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Horizontal status stepper showing the ticket's progress through the flow.
+///
+/// Steps: Arrive → Process → Parked → Pick Up → Done
+class _StatusStepper extends StatelessWidget {
+  final String currentStatus;
+
+  const _StatusStepper({required this.currentStatus});
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = [
+      ('Arrive', Ticket.statusArrival),
+      ('Process', Ticket.statusProcessingArrival),
+      ('Parked', Ticket.statusParked),
+      ('Pick Up', Ticket.statusDeparture),
+      ('Done', Ticket.statusCompleted),
+    ];
+
+    final currentIndex = _statusIndex(currentStatus);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: List.generate(steps.length * 2 - 1, (i) {
+          // Even indices = step circles, odd indices = connecting lines
+          if (i.isOdd) {
+            final stepIndex = i ~/ 2;
+            final isCompleted = stepIndex < currentIndex;
+            return Expanded(
+              child: Container(
+                height: 2,
+                color: isCompleted
+                    ? Colors.white.withValues(alpha: 0.8)
+                    : Colors.white.withValues(alpha: 0.15),
+              ),
+            );
+          }
+
+          final stepIndex = i ~/ 2;
+          final step = steps[stepIndex];
+          final isActive = stepIndex == currentIndex;
+          final isCompleted = stepIndex < currentIndex;
+
+          return _StepDot(
+            label: step.$1,
+            isActive: isActive,
+            isCompleted: isCompleted,
+          );
+        }),
+      ),
+    );
+  }
+
+  int _statusIndex(String status) {
+    return switch (status) {
+      Ticket.statusArrival => 0,
+      Ticket.statusProcessingArrival => 1,
+      Ticket.statusParked => 2,
+      Ticket.statusDeparture || Ticket.statusDeparted ||
+      Ticket.statusProcessingDeparture || Ticket.statusProcessing => 3,
+      Ticket.statusCompleted => 4,
+      _ => 0,
+    };
+  }
+}
+
+class _StepDot extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final bool isCompleted;
+
+  const _StepDot({
+    required this.label,
+    required this.isActive,
+    required this.isCompleted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: isActive ? 24 : 16,
+          height: isActive ? 24 : 16,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isActive
+                ? Colors.white
+                : isCompleted
+                    ? Colors.white.withValues(alpha: 0.8)
+                    : Colors.transparent,
+            border: Border.all(
+              color: isActive || isCompleted
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.3),
+              width: isActive ? 2 : 1.5,
+            ),
+          ),
+          child: isCompleted
+              ? const Icon(Icons.check, size: 10, color: Color(0xFF2D1B69))
+              : isActive
+                  ? Icon(Icons.circle, size: 8, color: AppColors.light.secondary)
+                  : null,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: isActive
+                ? Colors.white
+                : isCompleted
+                    ? Colors.white.withValues(alpha: 0.7)
+                    : Colors.white.withValues(alpha: 0.3),
+            fontSize: 9,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ],
     );
   }
 }

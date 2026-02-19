@@ -3,22 +3,28 @@ import 'package:flutter/material.dart';
 
 import '../config/asset_paths.dart';
 import '../config/theme/app_colors.dart';
+import '../models/my_car.dart';
 import '../models/ticket.dart';
+import 'gradient_background.dart';
 
 /// Branded ticket card widget with dark navy upper half and white lower half.
 ///
-/// Upper section: Valet One logo, location name, address, time/date in white.
-/// Lower section: White with faded Valet One watermark, barcode, PIN.
+/// Upper section: Valet One logo, animated status badge, location info.
+/// Lower section: White with barcode + PIN or contextual status message.
 class TicketCard extends StatelessWidget {
   final Ticket ticket;
   final String? locationName;
   final String? locationAddress;
+  final bool showPin;
+  final MyCar? vehicle;
 
   const TicketCard({
     super.key,
     required this.ticket,
     this.locationName,
     this.locationAddress,
+    this.showPin = true,
+    this.vehicle,
   });
 
   @override
@@ -73,21 +79,11 @@ class TicketCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Status badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-            decoration: BoxDecoration(
-              color: _statusColor(ticket.status),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              _statusLabel(ticket.status),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+          // Status badge with pulsing live dot
+          _AnimatedStatusBadge(
+            status: ticket.status,
+            label: _statusLabel(ticket.status),
+            color: _statusColor(ticket.status),
           ),
           const SizedBox(height: 16),
 
@@ -129,14 +125,20 @@ class TicketCard extends StatelessWidget {
             ),
           ],
 
-          // Ticket number
+          // Vehicle info
+          if (vehicle != null && vehicle!.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            _buildVehicleRow(),
+          ],
+
+          // Ticket number (truncated)
           if (ticket.ticketNumber != null) ...[
             const SizedBox(height: 8),
             Text(
-              'Ticket #${ticket.ticketNumber}',
+              'Ticket ${_shortId(ticket.ticketNumber!)}',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
-                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.5),
+                fontSize: 11,
               ),
             ),
           ],
@@ -145,8 +147,48 @@ class TicketCard extends StatelessWidget {
     );
   }
 
+  Widget _buildVehicleRow() {
+    final parts = <String>[];
+    final makeModel = [vehicle?.make, vehicle?.model]
+        .where((s) => s != null && s.isNotEmpty)
+        .join(' ');
+    if (makeModel.isNotEmpty) parts.add(makeModel);
+    if (vehicle?.color != null && vehicle!.color!.isNotEmpty) {
+      parts.add(vehicle!.color!);
+    }
+    if (vehicle?.plate != null && vehicle!.plate!.isNotEmpty) {
+      parts.add(vehicle!.plate!);
+    }
+
+    if (parts.isEmpty) return const SizedBox.shrink();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.directions_car_outlined,
+          color: Colors.white.withValues(alpha: 0.6),
+          size: 14,
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            parts.join(' \u2022 '),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.6),
+              fontSize: 12,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildDivider() {
-    // Perforated edge effect
+    // Perforated edge effect — notch color matches gradient background
     return SizedBox(
       height: 16,
       child: Stack(
@@ -158,7 +200,7 @@ class TicketCard extends StatelessWidget {
               Expanded(child: Container(color: Colors.white)),
             ],
           ),
-          // Notch circles
+          // Notch circles match the gradient background
           Positioned(
             left: -8,
             top: 0,
@@ -166,7 +208,7 @@ class TicketCard extends StatelessWidget {
               width: 16,
               height: 16,
               decoration: const BoxDecoration(
-                color: Color(0xFF2D1B69), // matches gradient
+                color: GradientBackground.deepPurple,
                 shape: BoxShape.circle,
               ),
             ),
@@ -178,7 +220,7 @@ class TicketCard extends StatelessWidget {
               width: 16,
               height: 16,
               decoration: const BoxDecoration(
-                color: Color(0xFF2D1B69),
+                color: GradientBackground.deepPurple,
                 shape: BoxShape.circle,
               ),
             ),
@@ -226,10 +268,34 @@ class TicketCard extends StatelessWidget {
               ),
             ),
           ),
-          // Barcode + PIN
+          // Barcode + PIN (only during Arrival phases)
           Column(
             children: [
-              if (ticket.pin != null && ticket.pin!.isNotEmpty) ...[
+              if (!showPin)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Column(
+                    children: [
+                      Icon(
+                        ticket.status == Ticket.statusDeparture
+                            ? Icons.directions_car_rounded
+                            : Icons.local_parking_rounded,
+                        size: 48,
+                        color: AppColors.light.secondary.withValues(alpha: 0.3),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _cardMessage(ticket.status),
+                        style: TextStyle(
+                          color: AppColors.light.secondaryText,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (ticket.pin != null && ticket.pin!.isNotEmpty) ...[
                 BarcodeWidget(
                   barcode: Barcode.code128(),
                   data: ticket.pin!,
@@ -259,14 +325,43 @@ class TicketCard extends StatelessWidget {
                   ),
                 ),
               ] else
+                // Shimmer placeholder while PIN loads
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(
-                    'Awaiting PIN...',
-                    style: TextStyle(
-                      color: AppColors.light.secondaryText,
-                      fontSize: 16,
-                    ),
+                  child: Column(
+                    children: [
+                      // Fake barcode shimmer
+                      Container(
+                        width: 220,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: Colors.grey.shade200,
+                        ),
+                        child: const _ShimmerEffect(),
+                      ),
+                      const SizedBox(height: 12),
+                      // Fake PIN shimmer
+                      Container(
+                        width: 140,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: Colors.grey.shade200,
+                        ),
+                        child: const _ShimmerEffect(),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'GENERATING PIN...',
+                        style: TextStyle(
+                          color: AppColors.light.secondaryText,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
             ],
@@ -290,12 +385,20 @@ class TicketCard extends StatelessWidget {
     );
   }
 
+  /// Truncates long IDs (UUIDs) to `#...last8chars`.
+  String _shortId(String id) {
+    if (id.length <= 12) return '#$id';
+    return '#...${id.substring(id.length - 8)}';
+  }
+
   Color _statusColor(String status) {
     return switch (status) {
       Ticket.statusArrival => Colors.amber.shade700,
       Ticket.statusProcessingArrival => Colors.blue,
       Ticket.statusParked => Colors.teal,
+      Ticket.statusProcessing => Colors.deepOrange,
       Ticket.statusDeparture => Colors.orange,
+      Ticket.statusDeparted => Colors.orange.shade800,
       Ticket.statusProcessingDeparture => Colors.deepOrange,
       Ticket.statusCompleted => Colors.green,
       Ticket.statusCancelled => Colors.grey,
@@ -308,11 +411,22 @@ class TicketCard extends StatelessWidget {
       Ticket.statusArrival => 'Arriving',
       Ticket.statusProcessingArrival => 'Processing Arrival',
       Ticket.statusParked => 'Parked',
+      Ticket.statusProcessing => 'Valet On The Way',
       Ticket.statusDeparture => 'Departing',
+      Ticket.statusDeparted => 'On The Way',
       Ticket.statusProcessingDeparture => 'Bringing Your Car',
       Ticket.statusCompleted => 'Completed',
       Ticket.statusCancelled => 'Cancelled',
       _ => status,
+    };
+  }
+
+  String _cardMessage(String status) {
+    return switch (status) {
+      Ticket.statusProcessingArrival => 'Your valet is parking your car',
+      Ticket.statusParked => 'Your car is safely parked',
+      Ticket.statusDeparture => 'Pick up requested',
+      _ => 'Your car is safely parked',
     };
   }
 
@@ -328,5 +442,155 @@ class TicketCard extends StatelessWidget {
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
     return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+  }
+}
+
+/// Animated status badge with a pulsing live dot.
+class _AnimatedStatusBadge extends StatefulWidget {
+  final String status;
+  final String label;
+  final Color color;
+
+  const _AnimatedStatusBadge({
+    required this.status,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  State<_AnimatedStatusBadge> createState() => _AnimatedStatusBadgeState();
+}
+
+class _AnimatedStatusBadgeState extends State<_AnimatedStatusBadge>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isLive = widget.status != Ticket.statusCompleted &&
+        widget.status != Ticket.statusCancelled;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+      decoration: BoxDecoration(
+        color: widget.color,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isLive) ...[
+            AnimatedBuilder(
+              animation: _animation,
+              builder: (_, __) => Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: _animation.value),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withValues(alpha: _animation.value * 0.5),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            widget.label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Simple shimmer effect for loading placeholders.
+class _ShimmerEffect extends StatefulWidget {
+  const _ShimmerEffect();
+
+  @override
+  State<_ShimmerEffect> createState() => _ShimmerEffectState();
+}
+
+class _ShimmerEffectState extends State<_ShimmerEffect>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (_, __) {
+        return ShaderMask(
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                Colors.grey.shade200,
+                Colors.grey.shade100,
+                Colors.grey.shade200,
+              ],
+              stops: [
+                (_controller.value - 0.3).clamp(0.0, 1.0),
+                _controller.value,
+                (_controller.value + 0.3).clamp(0.0, 1.0),
+              ],
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.srcATop,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              color: Colors.white,
+            ),
+          ),
+        );
+      },
+    );
   }
 }

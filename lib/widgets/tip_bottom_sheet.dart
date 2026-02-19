@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../config/app_constants.dart';
 import '../config/theme/app_colors.dart';
 import '../providers/api_provider.dart';
 import '../providers/ticket_provider.dart';
@@ -34,7 +36,7 @@ class _TipBottomSheetState extends ConsumerState<TipBottomSheet> {
   bool _isLoading = false;
   bool _useCustom = false;
 
-  static const _presets = [3.0, 5.0, 10.0, 20.0];
+  static const _presets = AppConstants.tipPresets;
 
   @override
   void dispose() {
@@ -74,10 +76,14 @@ class _TipBottomSheetState extends ConsumerState<TipBottomSheet> {
       );
 
       if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Tip of \$${amount.toStringAsFixed(2)} sent!')),
-        );
+        Navigator.pop(context); // dismiss bottom sheet
+        ref.read(activeTicketProvider.notifier).state = null;
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Tip of \$${amount.toStringAsFixed(2)} sent!')),
+          );
+          context.go('/home');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -224,7 +230,11 @@ class _TipBottomSheetState extends ConsumerState<TipBottomSheet> {
           ),
           const SizedBox(height: 8),
           TextButton(
-            onPressed: widget.onClose ?? () => Navigator.pop(context),
+            onPressed: widget.onClose ?? () {
+              Navigator.pop(context);
+              ref.read(activeTicketProvider.notifier).state = null;
+              context.go('/home');
+            },
             child: const Text('Skip'),
           ),
         ],

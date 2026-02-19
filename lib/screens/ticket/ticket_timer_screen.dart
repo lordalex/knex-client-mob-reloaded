@@ -50,6 +50,7 @@ class _TicketTimerScreenState extends ConsumerState<TicketTimerScreen> {
       const Duration(seconds: AppConstants.ticketPollIntervalSeconds),
       (_) => _pollTicket(),
     );
+
   }
 
   @override
@@ -118,6 +119,18 @@ class _TicketTimerScreenState extends ConsumerState<TicketTimerScreen> {
 
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
+    // Context-aware title/subtitle based on ticket status
+    final isDeparture = ticket.status == Ticket.statusDeparture ||
+        ticket.status == Ticket.statusDeparted ||
+        ticket.status == Ticket.statusProcessing ||
+        ticket.status == Ticket.statusProcessingDeparture;
+
+    final title = isDeparture ? 'On The Way' : 'Your Car Is Parked';
+    final subtitle = isDeparture
+        ? 'Your valet is bringing your car'
+        : 'Parking time elapsed';
+    final timerLabel = isDeparture ? 'PARKED FOR' : 'ELAPSED';
+
     return Scaffold(
       body: GradientBackground(
         child: SafeArea(
@@ -127,9 +140,9 @@ class _TicketTimerScreenState extends ConsumerState<TicketTimerScreen> {
               const SizedBox(height: 24),
 
               // Title
-              const Text(
-                'Pick your car',
-                style: TextStyle(
+              Text(
+                title,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -137,7 +150,7 @@ class _TicketTimerScreenState extends ConsumerState<TicketTimerScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Your car is being parked',
+                subtitle,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 14,
@@ -166,7 +179,9 @@ class _TicketTimerScreenState extends ConsumerState<TicketTimerScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.timer_outlined,
+                            isDeparture
+                                ? Icons.directions_car_outlined
+                                : Icons.timer_outlined,
                             size: 28,
                             color: Colors.white.withValues(alpha: 0.6),
                           ),
@@ -182,7 +197,7 @@ class _TicketTimerScreenState extends ConsumerState<TicketTimerScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'ELAPSED',
+                            timerLabel,
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.5),
                               fontSize: 12,
@@ -195,32 +210,6 @@ class _TicketTimerScreenState extends ConsumerState<TicketTimerScreen> {
                       progressColor: Colors.white.withValues(alpha: 0.9),
                       backgroundColor: Colors.white.withValues(alpha: 0.12),
                       circularStrokeCap: CircularStrokeCap.round,
-                    ),
-                  ),
-                ),
-              ),
-
-              // Pay button
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // Navigate to pay/completed when ready
-                      context.go('/ticketCompleted');
-                    },
-                    icon: const Icon(Icons.check_circle_outline),
-                    label: const Text('Pay valet parking'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.4),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
                   ),
                 ),

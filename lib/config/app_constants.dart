@@ -91,4 +91,8 @@ class AppConstants {
 
   /// Application version label shown in the Profile screen.
   static const String appVersion = 'v1.0';
+
+  /// Preset tip amounts shown on the tip bottom sheet.
+  /// TODO: Replace with backend endpoint when available.
+  static const List<double> tipPresets = [3.0, 5.0, 10.0, 20.0];
 }

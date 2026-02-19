@@ -13,20 +13,112 @@ import 'package:flutter/foundation.dart';
 /// If no token is available (the [tokenGetter] returns null or empty), the
 /// request data is sent through unmodified. This allows provisional/public
 /// endpoints to work without authentication.
-class AuthInterceptor extends Interceptor {
+///
+/// Extends [QueuedInterceptor] so that when a 401 occurs, all pending
+/// requests are queued while a single token refresh takes place. After
+/// refresh, the original request is retried automatically.
+class AuthInterceptor extends QueuedInterceptor {
   /// Callback that returns the current Firebase JWT token (or null).
   final String? Function() tokenGetter;
 
-  AuthInterceptor({required this.tokenGetter});
+  /// Async callback that force-refreshes the Firebase token and returns the
+  /// new JWT string (or null if the user is signed out).
+  final Future<String?> Function() tokenRefresher;
+
+  /// Callback to persist the refreshed token in ApiClient + Riverpod state.
+  final void Function(String?) tokenSetter;
+
+  AuthInterceptor({
+    required this.tokenGetter,
+    required this.tokenRefresher,
+    required this.tokenSetter,
+  });
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final token = tokenGetter();
+    _wrapWithToken(options, token);
+    handler.next(options);
+  }
 
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    // Only attempt refresh on 401 (expired token) responses.
+    if (err.response?.statusCode != 401) {
+      handler.next(err);
+      return;
+    }
+
+    developer.log(
+      'Got 401 on ${err.requestOptions.path} — refreshing Firebase token…',
+      name: 'AuthInterceptor',
+    );
+
+    try {
+      final newToken = await tokenRefresher();
+
+      if (newToken == null || newToken.isEmpty) {
+        // User is signed out; nothing to retry.
+        developer.log('Token refresh returned null — user signed out',
+            name: 'AuthInterceptor');
+        handler.next(err);
+        return;
+      }
+
+      // Persist the refreshed token so all subsequent requests use it.
+      tokenSetter(newToken);
+
+      // Rebuild the original request with the new token.
+      final opts = err.requestOptions;
+      // Restore the original data (unwrap the previous envelope).
+      final previousData = opts.data;
+      dynamic originalData;
+      if (previousData is Map<String, dynamic> &&
+          previousData.containsKey('idToken') &&
+          previousData.containsKey('data')) {
+        originalData = previousData['data'];
+      } else {
+        originalData = previousData;
+      }
+
+      // Re-wrap with the fresh token.
+      opts.data = originalData;
+      _wrapWithToken(opts, newToken);
+
+      developer.log('Retrying ${opts.path} with refreshed token',
+          name: 'AuthInterceptor');
+
+      // Retry the request through the same Dio instance.
+      final dio = Dio(BaseOptions(
+        baseUrl: opts.baseUrl,
+        connectTimeout: opts.connectTimeout,
+        receiveTimeout: opts.receiveTimeout,
+        contentType: opts.contentType,
+        responseType: opts.responseType,
+      ));
+      final response = await dio.request(
+        opts.path,
+        data: opts.data,
+        queryParameters: opts.queryParameters,
+        options: Options(
+          method: opts.method,
+          headers: opts.headers,
+        ),
+      );
+
+      handler.resolve(response);
+    } catch (e) {
+      developer.log('Token refresh / retry failed: $e',
+          name: 'AuthInterceptor');
+      handler.next(err);
+    }
+  }
+
+  /// Wraps [options.data] in the `{ idToken, data }` envelope.
+  void _wrapWithToken(RequestOptions options, String? token) {
     if (token != null && token.isNotEmpty) {
       final originalData = options.data;
 
-      // Wrap the payload in the expected envelope.
       if (originalData is Map<String, dynamic>) {
         options.data = {
           'idToken': token,
@@ -38,15 +130,12 @@ class AuthInterceptor extends Interceptor {
           'data': <String, dynamic>{},
         };
       } else {
-        // For non-Map payloads, wrap them as-is.
         options.data = {
           'idToken': token,
           'data': originalData,
         };
       }
     }
-
-    handler.next(options);
   }
 }
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photo_view/photo_view.dart';
@@ -14,8 +13,8 @@ import '../../widgets/error_state.dart';
 
 /// Screen displaying details for a specific valet location.
 ///
-/// Shows hero image via SliverAppBar, name, address, rating, action buttons,
-/// bio/description in a card, favorite toggle, and full-width favorite button.
+/// Hero image with photo gallery, info chips, sticky "Request Valet" CTA,
+/// About section, and call button.
 class SiteDetailsScreen extends ConsumerWidget {
   final String siteId;
 
@@ -46,11 +45,19 @@ class SiteDetailsScreen extends ConsumerWidget {
     final isFavorite = favorites.contains(siteId);
 
     return Scaffold(
+      // Sticky bottom CTA
+      bottomNavigationBar: _StickyBottomBar(
+        location: location,
+        onRequestValet: () => _showDisclaimerSheet(context, location),
+        onCall: location.phone != null
+            ? () => _callLocation(location.phone!)
+            : null,
+      ),
       body: CustomScrollView(
         slivers: [
-          // Hero image app bar — tints dark navy when collapsed
+          // Clean hero image — no title overlay
           SliverAppBar(
-            expandedHeight: 250,
+            expandedHeight: 280,
             pinned: true,
             backgroundColor: AppColors.light.secondary,
             foregroundColor: Colors.white,
@@ -72,7 +79,7 @@ class SiteDetailsScreen extends ConsumerWidget {
                   child: IconButton(
                     icon: Icon(
                       isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorite ? theme.colorScheme.primary : Colors.white,
+                      color: isFavorite ? Colors.redAccent : Colors.white,
                     ),
                     onPressed: () {
                       ref.read(favoriteSitesProvider.notifier).toggle(siteId);
@@ -82,64 +89,94 @@ class SiteDetailsScreen extends ConsumerWidget {
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                'Details',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
-              ),
               background: imageUrl != null
                   ? GestureDetector(
                       onTap: () => _showFullScreenPhoto(context, imageUrl),
-                      child: Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            child: const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          color: theme.colorScheme.surfaceContainerHighest,
-                          child: Icon(
-                            Icons.local_parking,
-                            size: 64,
-                            color: theme.colorScheme.onSurfaceVariant,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return Container(
+                                color: theme.colorScheme.surfaceContainerHighest,
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            },
+                            errorBuilder: (_, __, ___) =>
+                                _imagePlaceholder(theme),
                           ),
-                        ),
+                          // Bottom gradient for edge blending
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: 80,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withValues(alpha: 0.4),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Photo count badge
+                          if (photos.length > 1)
+                            Positioned(
+                              bottom: 12,
+                              right: 16,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.photo_library,
+                                        color: Colors.white, size: 14),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${photos.length} photos',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     )
-                  : Container(
-                      color: theme.colorScheme.surfaceContainerHighest,
-                      child: Icon(
-                        Icons.local_parking,
-                        size: 64,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+                  : _imagePlaceholder(theme),
             ),
           ),
 
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Name + badge
+                  // Name + price
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
@@ -149,120 +186,106 @@ class SiteDetailsScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'Primary Site',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onPrimary,
+                      if (location.price != null) ...[
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Address
-                  if (location.address != null)
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on_outlined,
-                          size: 16,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
+                          decoration: BoxDecoration(
+                            color: AppColors.light.secondary,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                           child: Text(
-                            location.address!,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
+                            '\$${location.price!.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ],
-                    ),
-                  const SizedBox(height: 8),
-
-                  // Company
-                  if (location.company != null)
-                    Text(
-                      location.company!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
+                    ],
+                  ),
                   const SizedBox(height: 12),
 
-                  // Rating bar
-                  RatingBarIndicator(
-                    rating: 4.5,
-                    itemBuilder: (context, _) => Icon(
-                      Icons.star,
-                      color: theme.colorScheme.primary,
-                    ),
-                    itemCount: 5,
-                    itemSize: 24,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Price
-                  if (location.price != null)
-                    Text(
-                      'Service: \$${location.price!.toStringAsFixed(2)} ${location.currency ?? 'USD'}',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  const SizedBox(height: 20),
-
-                  // Action buttons
-                  Row(
+                  // Info chips row
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () =>
-                              _showDisclaimerDialog(context, location),
-                          icon: const Icon(Icons.local_parking),
-                          label: const Text('Request Valet'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.light.secondary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
+                      if (location.address != null)
+                        _InfoChip(
+                          icon: Icons.location_on_outlined,
+                          label: location.address!,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: location.phone != null
-                              ? () => _callLocation(location.phone!)
-                              : null,
-                          icon: const Icon(Icons.phone),
-                          label: const Text('Call'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
+                      if (location.company != null)
+                        _InfoChip(
+                          icon: Icons.business_outlined,
+                          label: location.company!,
                         ),
-                      ),
+                      if (location.phone != null)
+                        _InfoChip(
+                          icon: Icons.phone_outlined,
+                          label: location.phone!,
+                        ),
                     ],
                   ),
                   const SizedBox(height: 20),
 
-                  // Bio/description — wrapped in card with watermark
+                  // Photo gallery (horizontal scroll) if multiple photos
+                  if (photos.length > 1) ...[
+                    Text(
+                      'Photos',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 100,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: photos.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                            onTap: () =>
+                                _showFullScreenPhoto(context, photos[index]),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                photos[index],
+                                width: 130,
+                                height: 100,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 130,
+                                  height: 100,
+                                  color: theme
+                                      .colorScheme.surfaceContainerHighest,
+                                  child: const Icon(Icons.broken_image),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // About section
                   if (location.bio != null && location.bio!.isNotEmpty) ...[
                     Card(
                       margin: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                       child: Stack(
                         children: [
-                          // Faded Valet One watermark
                           Positioned(
                             right: -20,
                             bottom: -10,
@@ -281,16 +304,30 @@ class SiteDetailsScreen extends ConsumerWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'About',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      size: 18,
+                                      color: AppColors.light.secondary,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'About',
+                                      style:
+                                          theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 10),
                                 Text(
                                   location.bio!,
-                                  style: theme.textTheme.bodyMedium,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    height: 1.5,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                               ],
                             ),
@@ -299,41 +336,27 @@ class SiteDetailsScreen extends ConsumerWidget {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 20),
 
-                  // Full-width Favorite Site button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        ref.read(favoriteSitesProvider.notifier).toggle(siteId);
-                      },
-                      icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        size: 20,
-                      ),
-                      label: Text(
-                        isFavorite ? 'Remove from Favorites' : 'Favorite Site',
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: isFavorite
-                            ? theme.colorScheme.primary
-                            : AppColors.light.secondary,
-                        side: BorderSide(
-                          color: isFavorite
-                              ? theme.colorScheme.primary
-                              : AppColors.light.secondary,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
+                  // Bottom spacing for sticky bar
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _imagePlaceholder(ThemeData theme) {
+    return Container(
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Center(
+        child: Icon(
+          Icons.local_parking_rounded,
+          size: 64,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }
@@ -357,32 +380,118 @@ class SiteDetailsScreen extends ConsumerWidget {
     );
   }
 
-  void _showDisclaimerDialog(BuildContext context, ValetLocation location) {
+  void _showDisclaimerSheet(BuildContext context, ValetLocation location) {
     final parentContext = context;
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Valet Service'),
-        content: Text(
-          'You are about to request valet parking at ${location.name}. '
-          '${location.price != null ? 'The service fee is \$${location.price!.toStringAsFixed(2)}. ' : ''}'
-          'Do you wish to continue?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              debugPrint('[SiteDetails] Navigating to /addCars?id=${location.id}');
-              parentContext.push('/addCars?id=${location.id}');
-            },
-            child: const Text('Continue'),
-          ),
-        ],
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(sheetContext).padding.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Icon(
+                Icons.local_parking_rounded,
+                size: 48,
+                color: AppColors.light.secondary,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Request Valet Service',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                location.name,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Price breakdown
+              if (location.price != null)
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Service Fee',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        '\$${location.price!.toStringAsFixed(2)} ${location.currency ?? 'USD'}',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 20),
+
+              // Continue button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    parentContext.push('/addCars?id=${location.id}');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.light.secondary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  child: const Text('Continue'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(sheetContext),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -391,5 +500,115 @@ class SiteDetailsScreen extends ConsumerWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
+  }
+}
+
+/// Info chip showing an icon + label in a subtle pill.
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _InfoChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppColors.light.secondaryText),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.light.secondaryText,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Sticky bottom bar with "Request Valet" CTA and optional call button.
+class _StickyBottomBar extends StatelessWidget {
+  final ValetLocation location;
+  final VoidCallback onRequestValet;
+  final VoidCallback? onCall;
+
+  const _StickyBottomBar({
+    required this.location,
+    required this.onRequestValet,
+    this.onCall,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    return Container(
+      padding: EdgeInsets.fromLTRB(16, 12, 16, bottomPadding + 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          if (onCall != null) ...[
+            SizedBox(
+              height: 50,
+              width: 50,
+              child: OutlinedButton(
+                onPressed: onCall,
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Icon(Icons.phone),
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Expanded(
+            child: SizedBox(
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: onRequestValet,
+                icon: const Icon(Icons.local_parking_rounded),
+                label: const Text('Request Valet'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.light.secondary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
